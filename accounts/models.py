@@ -56,3 +56,13 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return f'{self.user.username} - {self.role}'
+
+
+class Company(models.Model):
+    name = models.CharField(max_length=255)
+    owner = models.OneToOneField(UserProfile, on_delete=models.CASCADE, related_name='company')
+    phone_number = models.CharField(max_length=20)
+    company_description = models.TextField()
+
+    def __str__(self):
+        return self.company_name
