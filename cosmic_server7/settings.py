@@ -38,14 +38,37 @@ INSTALLED_APPS = [
 
     # 3rd party
     'rest_framework',
+    'rest_framework_simplejwt.token_blacklist',  # For token blacklisting if using JWT
     'drf_yasg',
+    'corsheaders',
 
     # Local
     'accounts',
 
 ]
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}
+
+# Token expiration settings (optional)
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=1),  # Set token expiration time
+    'REFRESH_TOKEN_LIFETIME': timedelta(minutes=2),  # Set refresh token lifetime
+    'ROTATE_REFRESH_TOKENS': True,  # Allows rotation of refresh tokens
+    'BLACKLIST_AFTER_ROTATION': True,  # Blacklist the old tokens after rotation
+}
+
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -123,3 +146,27 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+SWAGGER_SETTINGS = {
+    'USE_SESSION_AUTH': False,  # Disable session authentication in swagger
+    'SECURITY_DEFINITIONS': {
+        'Bearer': {
+            'type': 'apiKey',
+            'name': 'Authorization',
+            'in': 'header',
+            'description': 'JWT Authorization header using the Bearer scheme. Example: "Bearer {token}"',
+        }
+    },
+}
+
+AUTH_USER_MODEL = 'accounts.CustomUser'
+
+# Allow all origins (for development)
+CORS_ALLOW_ALL_ORIGINS = True
+
+# Alternatively, allow specific domains only (for production)
+# CORS_ALLOWED_ORIGINS = [
+#     'http://localhost:3000',  # React dev server
+#     'https://your-react-app.com',  # Production URL
+# ]
