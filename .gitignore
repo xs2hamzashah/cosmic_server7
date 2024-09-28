@@ -1,0 +1,62 @@
+# Python
+*.py[cod]
+__pycache__/
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.manifest
+*.spec
+
+# Django specific
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+db.sqlite3
+media/
+static/
+
+# Environment variables
+.env
+.vscode/
+
+# Virtual environment
+venv/
+env/
+ENV/
+*.env
+
+# macOS
+.DS_Store
+
+# IDE specific
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# Node.js for React frontend or static assets
+node_modules/
+
+# Coverage reports
+htmlcov/
+.coverage
+.tox/
+.nox/
+
+# Test and cache files
+pip-log.txt
+pip-delete-this-directory.txt
+*.log
+coverage.xml
+nosetests.xml
+test-reports/
+cache/
+
+# Django Migrations
+*/migrations/*
