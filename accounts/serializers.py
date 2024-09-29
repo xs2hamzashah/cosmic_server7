@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
-from .models import UserProfile, CustomUser
+from .models import UserProfile, CustomUser, Company
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -18,21 +18,36 @@ class UserSerializer(serializers.ModelSerializer):
         return data
 
 
+class CompanySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Company
+        fields = ['name', 'phone_number', 'description']
+
+
 class UserProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer()
+    company = CompanySerializer(allow_null=True)  # Allow null for non-sellers
 
     class Meta:
         model = UserProfile
-        fields = ['user', 'role', ]
+        fields = ['user', 'role', 'company']
 
     def create(self, validated_data):
         user_data = validated_data.pop('user')
         password = user_data.pop('password')
         user_data.pop('confirm_password')
 
+        company_data = validated_data.pop('company', None)
+
         user = CustomUser.objects.create(**user_data)
         user.set_password(password)  # Hash the password before saving
         user.save()
 
+        # Create a company only if the user is a seller
         profile = UserProfile.objects.create(user=user, **validated_data)
+        if profile.role == 'seller' and company_data:
+            company = Company.objects.create(owner=profile, **company_data)
+            profile.company = company
+            profile.save()
+
         return profile

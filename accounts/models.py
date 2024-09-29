@@ -2,6 +2,7 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import User, AbstractUser
 from django.db import models
 
+from core.models import TimeStampedModel
 from cosmic_server7 import settings
 
 
@@ -27,7 +28,7 @@ class CustomUserManager(BaseUserManager):
         return self.create_user(email, password, **extra_fields)
 
 
-class CustomUser(AbstractUser):
+class CustomUser(AbstractUser, TimeStampedModel):
     username = models.CharField(max_length=150, blank=True, null=True, unique=False)
     email = models.EmailField(unique=True)
     full_name = models.CharField(max_length=255)
@@ -44,7 +45,7 @@ class CustomUser(AbstractUser):
         return self.email
 
 
-class UserProfile(models.Model):
+class UserProfile(TimeStampedModel):
     ROLE_CHOICES = (
         ('admin', 'Admin'),
         ('seller', 'Seller'),
@@ -58,11 +59,11 @@ class UserProfile(models.Model):
         return f'{self.user.username} - {self.role}'
 
 
-class Company(models.Model):
+class Company(TimeStampedModel):
     name = models.CharField(max_length=255)
     owner = models.OneToOneField(UserProfile, on_delete=models.CASCADE, related_name='company')
     phone_number = models.CharField(max_length=20)
-    company_description = models.TextField()
+    description = models.TextField()
 
     def __str__(self):
         return self.company_name
