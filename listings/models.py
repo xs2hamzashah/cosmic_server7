@@ -86,15 +86,18 @@ class CivilMaterial(models.TextChoices):
 
 class SolutionDetails(TimeStampedModel):
     solar_solution = models.ForeignKey(SolarSolution, on_delete=models.CASCADE, related_name='components')
-    details_type = models.CharField(max_length=50, choices=DetailsType.choices)  # Identifies the type of solar solution details
+    details_type = models.CharField(max_length=50,
+                                    choices=DetailsType.choices)  # Identifies the type of solar solution details
     brand = models.CharField(max_length=100, blank=True, null=True)  # Optional, not always applicable
     capacity = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)  # Optional
     quantity = models.PositiveIntegerField(default=1)  # Can be used for counts or multiples of work done
     warranty = models.DecimalField(max_digits=4, decimal_places=1, default=1)  # Default 1 year warranty
     details = models.TextField(blank=True, null=True)  # Additional details (specific to the work type)
 
-    material = models.CharField(max_length=50, choices=MechanicalMaterial.choices, blank=True, null=True)  # Mechanical work
-    structure_type = models.CharField(max_length=50, choices=MechanicalStructureType.choices, blank=True, null=True)  # Structure type in mechanical work
+    material = models.CharField(max_length=50, choices=MechanicalMaterial.choices, blank=True,
+                                null=True)  # Mechanical work
+    structure_type = models.CharField(max_length=50, choices=MechanicalStructureType.choices, blank=True,
+                                      null=True)  # Structure type in mechanical work
 
     def __str__(self):
         return f"{self.details_type} for {self.solar_solution}"
@@ -104,7 +107,8 @@ class Service(TimeStampedModel):
     solution = models.ForeignKey(SolarSolution, related_name='services', on_delete=models.CASCADE)
     dc_earthing_included = models.BooleanField(default=False, help_text="Is DC Earthing included?")
     afss_included = models.BooleanField(default=False, help_text="Is AFSS included?")
-    afss_warranty_years = models.PositiveIntegerField(null=True, blank=True, help_text="AFSS warranty in years if included")
+    afss_warranty_years = models.PositiveIntegerField(null=True, blank=True,
+                                                      help_text="AFSS warranty in years if included")
     online_monitoring_included = models.BooleanField(default=False, help_text="Is online monitoring included?")
     net_metering_included = models.BooleanField(default=False, help_text="Is net metering included?")
     fire_extinguisher_included = models.BooleanField(default=False, help_text="Is HSE service included?")
