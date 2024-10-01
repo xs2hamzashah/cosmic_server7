@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/5.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.1/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -45,6 +45,9 @@ INSTALLED_APPS = [
 
     # Local
     'accounts',
+    'listings',
+    'core',
+    'operations',
 
 ]
 
@@ -175,3 +178,11 @@ CORS_ALLOW_ALL_ORIGINS = True
 #     'http://localhost:3000',  # React dev server
 #     'https://your-react-app.com',  # Production URL
 # ]
+
+
+# Actual directory user files go to
+MEDIA_ROOT = os.path.join(os.path.dirname(BASE_DIR), 'mediafiles')
+
+
+# URL used to access the media
+MEDIA_URL = '/media/'
