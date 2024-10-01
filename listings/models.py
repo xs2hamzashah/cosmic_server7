@@ -97,7 +97,7 @@ class SolutionDetails(TimeStampedModel):
     structure_type = models.CharField(max_length=50, choices=MechanicalStructureType.choices, blank=True, null=True)  # Structure type in mechanical work
 
     def __str__(self):
-        return f"{self.component_type} for {self.solution}"
+        return f"{self.details_type} for {self.solar_solution}"
 
 
 class Service(TimeStampedModel):

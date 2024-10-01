@@ -29,13 +29,13 @@ class ServiceSerializer(serializers.ModelSerializer):
 
 class SolarSolutionCreateSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
-    media = SolutionMediaSerializer(many=True)
+    mediafiles = SolutionMediaSerializer(many=True)
     components = SolutionDetailsSerializer(many=True)
     services = ServiceSerializer(many=True)
 
     class Meta:
         model = SolarSolution
-        fields = ['size', 'price', 'solution_type', 'tags', 'completion_time_days', 'payment_schedule', 'media',
+        fields = ['size', 'price', 'solution_type', 'tags', 'completion_time_days', 'payment_schedule', 'mediafiles',
                   'components', 'services']
 
 
