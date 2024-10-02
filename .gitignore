@@ -18,7 +18,7 @@ build/
 *.db
 *.sqlite3
 db.sqlite3
-mediafiles/
+media/
 static/
 
 # Environment variables

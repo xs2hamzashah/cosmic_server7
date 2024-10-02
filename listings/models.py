@@ -33,7 +33,7 @@ class Tag(TimeStampedModel):
 
 
 def upload_to(instance, filename):
-    return 'images/solution_images/{filename}'.format(filename=filename)
+    return 'solution_images/{filename}'.format(filename=filename)
 
 
 class SolutionMedia(TimeStampedModel):
