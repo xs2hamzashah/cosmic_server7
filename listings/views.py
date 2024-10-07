@@ -2,7 +2,8 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework import status
 
-from accounts.permissions import IsSeller
+from accounts.permissions import IsSeller, IsAdmin
+from operations.models import Approval
 from .models import SolarSolution, Tag, SolutionMedia, SolutionDetails, Service
 from .serializers import SolarSolutionListSerializer, SolarSolutionCreateSerializer
 from django.db.models import Prefetch
@@ -11,7 +12,7 @@ from django.db.models import Prefetch
 class SolarSolutionViewSet(viewsets.ModelViewSet):
     queryset = SolarSolution.objects.all()
     serializer_class = SolarSolutionListSerializer # default fallback
-    permission_classes = [IsSeller]
+    permission_classes = [IsAdmin]
 
     def get_serializer_class(self):
         if self.action == 'list':
@@ -44,7 +45,8 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
             price=data['price'],
             solution_type=data['solution_type'],
             completion_time_days=data['completion_time_days'],
-            payment_schedule=data['payment_schedule']
+            payment_schedule=data['payment_schedule'],
+            seller=request.user
         )
 
         # Handle tags
@@ -63,6 +65,9 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
         # Handle services
         for service in services_data:
             Service.objects.create(solution=solar_solution, **service)
+
+        # Create Approval entry for the newly created SolarSolution
+        Approval.objects.create(solution=solar_solution)
 
         serializer = self.get_serializer(solar_solution)
         return Response(serializer.data, status=status.HTTP_201_CREATED)

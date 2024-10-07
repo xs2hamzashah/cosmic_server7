@@ -59,4 +59,4 @@ test-reports/
 cache/
 
 # Django Migrations
-*/migrations/*
+#*/migrations/*

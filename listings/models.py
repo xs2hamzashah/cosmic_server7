@@ -24,6 +24,11 @@ class SolarSolution(TimeStampedModel):
     payment_schedule = models.CharField(max_length=50, choices=PaymentSchedule.choices,
                                         default=PaymentSchedule.FLEXIBLE, help_text="Payment schedule for the solution")
 
+    # New seller field added
+    seller = models.ForeignKey('accounts.CustomUser', null=True,
+                               on_delete=models.CASCADE,
+                               related_name='solar_solutions')
+
 
 class Tag(TimeStampedModel):
     name = models.CharField(max_length=50, unique=True)

@@ -182,3 +182,22 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Email Backend
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+
+# SMTP Server Configuration
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
+
+# Gmail Account Credentials
+EMAIL_HOST_USER = 'xs2hamzashah@gmail.com'  # Your Gmail address
+EMAIL_HOST_PASSWORD = 'mwkwatmaqhimxmoq'  # Use the App Password here, not your regular Gmail password
+
+# Default 'From' Email Address
+DEFAULT_FROM_EMAIL = 'xs2hamzashah@gmail.com'
+
+# Optional: For Admin Notifications
+ADMINS = [('Hamza Shah', 'xs2hamzashah@gmail.com')]
