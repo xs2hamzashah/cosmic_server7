@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 import os
 from pathlib import Path
+from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -187,17 +188,17 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 
 # SMTP Server Configuration
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_USE_SSL = False
+EMAIL_HOST = config('EMAIL_HOST')
+EMAIL_PORT = config('EMAIL_PORT', cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)
+EMAIL_USE_SSL = config('EMAIL_USE_SSL', cast=bool)
 
 # Gmail Account Credentials
-EMAIL_HOST_USER = 'xs2hamzashah@gmail.com'  # Your Gmail address
-EMAIL_HOST_PASSWORD = 'mwkwatmaqhimxmoq'  # Use the App Password here, not your regular Gmail password
+EMAIL_HOST_USER = config('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 
 # Default 'From' Email Address
-DEFAULT_FROM_EMAIL = 'xs2hamzashah@gmail.com'
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 
-# Optional: For Admin Notifications
-ADMINS = [('Hamza Shah', 'xs2hamzashah@gmail.com')]
+# Admin Notifications
+ADMINS = [(config('ADMIN_NAME'), config('ADMIN_EMAIL'))]
