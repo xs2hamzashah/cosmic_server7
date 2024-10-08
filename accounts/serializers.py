@@ -51,3 +51,15 @@ class UserProfileSerializer(serializers.ModelSerializer):
             profile.save()
 
         return profile
+
+
+class ForgotPasswordSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+
+class PasswordResetSerializer(serializers.Serializer):
+    new_password = serializers.CharField(write_only=True, min_length=8)
+
+    def validate_new_password(self, value):
+        # Add any password validation logic if needed
+        return value

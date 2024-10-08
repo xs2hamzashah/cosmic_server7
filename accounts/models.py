@@ -41,6 +41,18 @@ class CustomUser(AbstractUser, TimeStampedModel):
 
     objects = CustomUserManager()
 
+    _user_profile_id_cache = None  # Initialize a private cache variable
+
+    @property
+    def userprofile_id(self):
+        # Check if the UserProfile is already cached
+        if self._user_profile_id_cache is None:
+            try:
+                self._user_profile_id_cache = self.userprofile.id  # Lazy load and cache the UserProfile
+            except UserProfile.DoesNotExist:
+                self._user_profile_id_cache = None  # Handle the case where the UserProfile does not exist
+        return self._user_profile_id_cache
+
     def __str__(self):
         return self.email
 
@@ -54,6 +66,15 @@ class UserProfile(TimeStampedModel):
 
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     role = models.CharField(max_length=10, choices=ROLE_CHOICES)
+
+    _user_id_cache = None  # Initialize a private cache variable
+
+    @property
+    def user_id(self):
+        # Check if user_id is already cached
+        if self._user_id_cache is None:
+            self._user_id_cache = self.user.id  # Lazy load and cache the user_id
+        return self._user_id_cache
 
     def __str__(self):
         return f'{self.user.username} - {self.role}'
