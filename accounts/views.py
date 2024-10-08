@@ -63,7 +63,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
 
             # Generate a password reset token or link
             reset_url = request.build_absolute_uri(
-                reverse('userprofile-reset_password', kwargs={'pk': user.userprofile_id})
+                reverse('userprofile-reset-password', kwargs={'pk': user.userprofile_id})
             )
 
             # Send an email with the reset link

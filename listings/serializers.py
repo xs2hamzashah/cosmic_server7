@@ -16,10 +16,11 @@ class SolutionMediaSerializer(serializers.ModelSerializer):
         fields = ['image', 'image_url', 'is_display_image']
 
     def get_image_url(self, obj):
-        request = self.context.get('request')
-        if obj.image and request:
-
-            return request.build_absolute_uri(obj.image.url)
+        # Ensure obj is of type SolutionMedia
+        if isinstance(obj, SolutionMedia):
+            request = self.context.get('request')
+            if obj.image and request:
+                return request.build_absolute_uri(obj.image.url)
         return None
 
 
@@ -27,7 +28,7 @@ class SolutionDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = SolutionDetails
         fields = ['details_type', 'brand', 'capacity', 'quantity', 'warranty',
-                  'details', 'mechanical_material', 'mechanical_structure_type'
+                  'details', 'mechanical_material', 'mechanical_structure_type',
                   'civil_material', 'wire_material']
 
 
@@ -39,7 +40,7 @@ class ServiceSerializer(serializers.ModelSerializer):
 
 
 class SolarSolutionCreateSerializer(serializers.ModelSerializer):
-    tags = TagSerializer(many=True)
+    tags = TagSerializer(many=True, required=False)  # will check if it required or not
     mediafiles = SolutionMediaSerializer(many=True)
     components = SolutionDetailsSerializer(many=True)
     services = ServiceSerializer(many=True)
