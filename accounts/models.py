@@ -85,6 +85,7 @@ class Company(TimeStampedModel):
     owner = models.OneToOneField(UserProfile, on_delete=models.CASCADE, related_name='company')
     phone_number = models.CharField(max_length=20)
     description = models.TextField()
+    city = models.CharField(max_length=100)
 
     def __str__(self):
         return self.name
