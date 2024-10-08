@@ -99,10 +99,15 @@ class SolutionDetails(TimeStampedModel):
     warranty = models.DecimalField(max_digits=4, decimal_places=1, default=1)  # Default 1 year warranty
     details = models.TextField(blank=True, null=True)  # Additional details (specific to the work type)
 
-    material = models.CharField(max_length=50, choices=MechanicalMaterial.choices, blank=True,
-                                null=True)  # Mechanical work
-    structure_type = models.CharField(max_length=50, choices=MechanicalStructureType.choices, blank=True,
-                                      null=True)  # Structure type in mechanical work
+    mechanical_material = models.CharField(max_length=50, choices=MechanicalMaterial.choices, blank=True,
+                                           null=True)  # Mechanical work
+    mechanical_structure_type = models.CharField(max_length=50, choices=MechanicalStructureType.choices, blank=True,
+                                                 null=True)  # Structure type in mechanical work
+
+    civil_material = models.CharField(max_length=50, choices=CivilMaterial.choices, blank=True,
+                                      null=True)  # Civil work
+    wire_material = models.CharField(max_length=50, choices=WireMaterial.choices, blank=True,
+                                     null=True)  # Wire work
 
     def __str__(self):
         return f"{self.details_type} for {self.solar_solution}"

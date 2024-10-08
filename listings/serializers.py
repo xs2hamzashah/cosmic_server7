@@ -26,7 +26,9 @@ class SolutionMediaSerializer(serializers.ModelSerializer):
 class SolutionDetailsSerializer(serializers.ModelSerializer):
     class Meta:
         model = SolutionDetails
-        fields = ['details_type', 'brand', 'capacity', 'quantity', 'warranty', 'details', 'material', 'structure_type']
+        fields = ['details_type', 'brand', 'capacity', 'quantity', 'warranty',
+                  'details', 'mechanical_material', 'mechanical_structure_type'
+                  'civil_material', 'wire_material']
 
 
 class ServiceSerializer(serializers.ModelSerializer):
