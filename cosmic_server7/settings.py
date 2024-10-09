@@ -70,7 +70,7 @@ REST_FRAMEWORK = {
 from datetime import timedelta
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=30),  # Set token expiration time
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=20),  # Set token expiration time
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),  # Set refresh token lifetime
     'ROTATE_REFRESH_TOKENS': True,  # Allows rotation of refresh tokens
     'BLACKLIST_AFTER_ROTATION': True,  # Blacklist the old tokens after rotation
