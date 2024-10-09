@@ -1,20 +1,24 @@
 import django_filters
 from django_filters import filters
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets
+from rest_framework.decorators import action
+from rest_framework.parsers import FormParser, MultiPartParser, JSONParser
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 
 from operations.models import Approval
 from .models import SolarSolution, Tag, SolutionMedia, SolutionDetails, Service
-from .serializers import SolarSolutionListSerializer, SolarSolutionCreateSerializer
+from .serializers import SolarSolutionListSerializer, SolarSolutionCreateSerializer, SolutionMediaSerializer
 from django.db.models import Prefetch, Q
 
 
 class SolarSolutionViewSet(viewsets.ModelViewSet):
     queryset = SolarSolution.objects.all()
-    serializer_class = SolarSolutionListSerializer # default fallback
+    serializer_class = SolarSolutionListSerializer  # default fallback
     permission_classes = [AllowAny]
 
     class SolarSolutionFilter(django_filters.FilterSet):
@@ -100,7 +104,7 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
 
         tags_data = data.pop('tags', [])
         # Handle tags
-        tags =[]
+        tags = []
         for tag_data in tags_data:
             tag, created = Tag.objects.get_or_create(**tag_data)
             tags.append(tag)
@@ -108,7 +112,6 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=data)
         serializer.is_valid(raise_exception=True)
 
-        media_data = data.pop('mediafiles', [])
         components_data = data.pop('components', [])
         services_data = data.pop('services', [])
 
@@ -123,10 +126,6 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
         )
 
         solar_solution.tags.set(tags)
-
-        # Handle mediafiles
-        for media in media_data:
-            SolutionMedia.objects.create(solution=solar_solution, **media)
 
         # Handle components (SolutionDetails)
         for component in components_data:
@@ -144,3 +143,37 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())  # Use the filter here
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
+
+        # Define an action for media upload with custom swagger schema
+
+    @action(detail=True, methods=['post'], parser_classes=[MultiPartParser, FormParser, JSONParser])
+    def upload_media(self, request, pk=None):
+        """
+        Upload media for a SolarSolution. Note: Swagger UI does not currently display the image upload field.
+        You can use form-data to upload an image (and the is_display_image field) into this API using tools like Postman
+        """
+        solar_solution = self.get_object()  # Get the specific SolarSolution instance
+
+        # Get the uploaded media file
+        media_file = request.FILES.get('media')
+
+        # Get the is_display_image flag
+        is_display_image = request.data.get('is_display_image', False)
+
+        # Prepare data for the serializer
+        media_data = {
+            'image': media_file,
+            'is_display_image': is_display_image
+        }
+
+        # Use the serializer to validate the data
+        serializer = SolutionMediaSerializer(data=media_data)
+        serializer.is_valid(raise_exception=True)  # Raises an error if validation fails
+
+        # If the current image is marked as display image, update other images
+        if is_display_image:
+            SolutionMedia.objects.filter(solution=solar_solution, is_display_image=True).update(is_display_image=False)
+
+        # Create a SolutionMedia instance
+        SolutionMedia.objects.create(solution=solar_solution, **serializer.validated_data)
+        return Response({'status': 'media file uploaded'}, status=status.HTTP_201_CREATED)

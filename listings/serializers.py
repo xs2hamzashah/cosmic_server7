@@ -9,19 +9,11 @@ class TagSerializer(serializers.ModelSerializer):
 
 
 class SolutionMediaSerializer(serializers.ModelSerializer):
-    image_url = serializers.SerializerMethodField()
+    image = serializers.ImageField()
 
     class Meta:
         model = SolutionMedia
-        fields = ['image', 'image_url', 'is_display_image']
-
-    def get_image_url(self, obj):
-        # Ensure obj is of type SolutionMedia
-        if isinstance(obj, SolutionMedia):
-            request = self.context.get('request')
-            if obj.image and request:
-                return request.build_absolute_uri(obj.image.url)
-        return None
+        fields = ['image', 'is_display_image']
 
 
 class SolutionDetailsSerializer(serializers.ModelSerializer):
