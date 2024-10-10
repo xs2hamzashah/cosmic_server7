@@ -33,13 +33,12 @@ class ServiceSerializer(serializers.ModelSerializer):
 
 class SolarSolutionCreateSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, required=False)  # will check if it required or not
-    mediafiles = SolutionMediaSerializer(many=True)
     components = SolutionDetailsSerializer(many=True)
     services = ServiceSerializer(many=True)
 
     class Meta:
         model = SolarSolution
-        fields = ['size', 'price', 'solution_type', 'tags', 'completion_time_days', 'payment_schedule', 'mediafiles',
+        fields = ['size', 'price', 'solution_type', 'tags', 'completion_time_days', 'payment_schedule',
                   'components', 'services']
 
 

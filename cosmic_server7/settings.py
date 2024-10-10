@@ -170,6 +170,13 @@ SWAGGER_SETTINGS = {
     },
 }
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',  # In-memory cache
+    }
+}
+
+
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
 # Allow all origins (for development)
@@ -203,3 +210,8 @@ DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL')
 
 # Admin Notifications
 ADMINS = [(config('ADMIN_NAME'), config('ADMIN_EMAIL'))]
+
+# Twilio configuration
+TWILIO_ACCOUNT_SID = config('TWILIO_ACCOUNT_SID')
+TWILIO_AUTH_TOKEN = config('TWILIO_AUTH_TOKEN')
+TWILIO_WHATSAPP_NUMBER = config('TWILIO_WHATSAPP_NUMBER')
