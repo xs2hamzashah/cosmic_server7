@@ -1,8 +1,6 @@
 import django_filters
 from django_filters import filters
 from django_filters.rest_framework import DjangoFilterBackend
-from drf_yasg import openapi
-from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.parsers import FormParser, MultiPartParser, JSONParser
@@ -10,9 +8,12 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 
+from accounts.models import UserProfile
+from accounts.permissions import IsAdmin, IsSeller
 from operations.models import Approval
 from .models import SolarSolution, Tag, SolutionMedia, SolutionDetails, Service
-from .serializers import SolarSolutionListSerializer, SolarSolutionCreateSerializer, SolutionMediaSerializer
+from .serializers import SolarSolutionListSerializer, SolarSolutionCreateSerializer, SolutionMediaSerializer, \
+    SellerReportSerializer
 from django.db.models import Prefetch, Q
 
 
@@ -177,3 +178,48 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
         # Create a SolutionMedia instance
         SolutionMedia.objects.create(solution=solar_solution, **serializer.validated_data)
         return Response({'status': 'media file uploaded'}, status=status.HTTP_201_CREATED)
+
+
+class AnalyticsViewSet(viewsets.ViewSet):
+
+    @action(detail=False, methods=['get'], permission_classes=[IsAdmin])
+    def admin_analytics(self, request):
+        sellers = UserProfile.objects.filter(role='seller')
+        report = []
+
+        for seller in sellers:
+            solar_products = SolarSolution.objects.filter(owner=seller)
+
+            # Use the SolarSolutionSerializer to serialize the product data
+            serialized_products = SolarSolutionListSerializer(solar_products, many=True).data
+
+            seller_data = {
+                'seller_id': seller.id,
+                'seller_name': seller.user.full_name,
+                'products': serialized_products
+            }
+
+            report.append(seller_data)
+
+        # Use the SellerReportSerializer to serialize the report data
+        serialized_report = SellerReportSerializer(report, many=True)
+
+        return Response({'report': serialized_report.data}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'], permission_classes=[IsSeller], url_path='seller-analytics')
+    def seller_analytics(self, request):
+        seller = request.user
+
+        # Retrieve only the solar products for this seller
+        solar_products = SolarSolution.objects.filter(owner=seller)
+
+        # Serialize the solar products and their interactions
+        serialized_products = SolarSolutionListSerializer(solar_products, many=True).data
+
+        seller_data = {
+            'seller_id': seller.id,
+            'seller_name': seller.user.username,
+            'products': serialized_products
+        }
+
+        return Response({'report': seller_data}, status=status.HTTP_200_OK)

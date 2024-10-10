@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import SolarSolution, Tag, SolutionMedia, SolutionDetails, Service
+from .models import SolarSolution, Tag, SolutionMedia, SolutionDetails, Service, BuyerInteraction
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -42,7 +42,28 @@ class SolarSolutionCreateSerializer(serializers.ModelSerializer):
                   'components', 'services']
 
 
+class BuyerInteractionSerializer(serializers.ModelSerializer):
+    whatsapp_number = serializers.CharField()
+
+    class Meta:
+        model = BuyerInteraction
+        fields = ['whatsapp_number']
+
+
 class SolarSolutionListSerializer(serializers.ModelSerializer):
+    buyer_interaction_count = serializers.SerializerMethodField()
+    buyer_whatsapp_numbers = BuyerInteractionSerializer(many=True, source='interactions')
+
     class Meta:
         model = SolarSolution
-        fields = ['id', 'size', 'price', 'solution_type', 'completion_time_days', 'payment_schedule']
+        fields = ['id', 'size', 'price', 'solution_type', 'completion_time_days', 'payment_schedule',
+                  'buyer_interaction_count', 'buyer_whatsapp_numbers']
+
+    def get_buyer_interaction_count(self, obj):
+        return obj.interactions.count()  # Count related interactions
+
+
+class SellerReportSerializer(serializers.Serializer):
+    seller_id = serializers.IntegerField()
+    seller_name = serializers.CharField()
+    products = SolarSolutionListSerializer(many=True)

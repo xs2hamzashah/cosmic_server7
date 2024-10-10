@@ -123,3 +123,8 @@ class Service(TimeStampedModel):
     net_metering_included = models.BooleanField(default=False, help_text="Is net metering included?")
     fire_extinguisher_included = models.BooleanField(default=False, help_text="Is HSE service included?")
     transportation_included = models.BooleanField(default=True, help_text="Is transportation included?")
+
+
+class BuyerInteraction(TimeStampedModel):
+    solar_solution = models.ForeignKey(SolarSolution, related_name='interactions', on_delete=models.CASCADE)
+    whatsapp_number = models.CharField(max_length=15)
