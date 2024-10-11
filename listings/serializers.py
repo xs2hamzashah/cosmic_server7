@@ -60,7 +60,8 @@ class SolarSolutionListSerializer(serializers.ModelSerializer):
                   'buyer_interaction_count', 'buyer_whatsapp_numbers']
 
     def get_buyer_interaction_count(self, obj):
-        return obj.interactions.count()  # Count related interactions
+        # Count the number of interactions related to this SolarSolution
+        return obj.interactions.count()
 
 
 class SellerReportSerializer(serializers.Serializer):

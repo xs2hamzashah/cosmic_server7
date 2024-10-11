@@ -1,4 +1,5 @@
 import django_filters
+from django.contrib.auth import get_user_model
 from django_filters import filters
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
@@ -188,15 +189,13 @@ class AnalyticsViewSet(viewsets.ViewSet):
         report = []
 
         for seller in sellers:
-            solar_products = SolarSolution.objects.filter(owner=seller)
+            solar_products = SolarSolution.objects.filter(seller=seller.user)
 
-            # Use the SolarSolutionSerializer to serialize the product data
-            serialized_products = SolarSolutionListSerializer(solar_products, many=True).data
-
+            # Do not serialize here, just collect the data
             seller_data = {
                 'seller_id': seller.id,
                 'seller_name': seller.user.full_name,
-                'products': serialized_products
+                'products': solar_products  # Pass the queryset directly
             }
 
             report.append(seller_data)
@@ -206,19 +205,17 @@ class AnalyticsViewSet(viewsets.ViewSet):
 
         return Response({'report': serialized_report.data}, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['get'], permission_classes=[IsSeller], url_path='seller-analytics')
-    def seller_analytics(self, request):
+    @action(detail=False, methods=['get'], permission_classes=[IsSeller])
+    def seller_analytics(self, request, pk=None):
         seller = request.user
-
-        # Retrieve only the solar products for this seller
-        solar_products = SolarSolution.objects.filter(owner=seller)
+        solar_products = SolarSolution.objects.filter(seller=seller)
 
         # Serialize the solar products and their interactions
         serialized_products = SolarSolutionListSerializer(solar_products, many=True).data
 
         seller_data = {
             'seller_id': seller.id,
-            'seller_name': seller.user.username,
+            'seller_name': seller.user.full_name,
             'products': serialized_products
         }
 
