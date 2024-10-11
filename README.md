@@ -27,11 +27,11 @@ Cosmic Server 7 is a backend system designed to manage solar products, buyers, s
 3. Install the dependencies:
    ```bash
     pip install -r requirements.txt
-    
+
 3. Run database migrations:
     ```bash
     python manage.py migrate
-    
+
 4.  Create a superuser:
     ```bash
     python manage.py createsuperuser
@@ -39,7 +39,6 @@ Cosmic Server 7 is a backend system designed to manage solar products, buyers, s
 6.  Start the development server:
     ```bash
     python manage.py runserver
-    
 
 Features
 --------
