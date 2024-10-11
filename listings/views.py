@@ -14,7 +14,7 @@ from accounts.permissions import IsAdmin, IsSeller
 from operations.models import Approval
 from .models import SolarSolution, Tag, SolutionMedia, SolutionDetails, Service
 from .serializers import SolarSolutionListSerializer, SolarSolutionCreateSerializer, SolutionMediaSerializer, \
-    SellerReportSerializer
+    SellerReportSerializer, SolarSolutionDetailSerializer
 from django.db.models import Prefetch, Q
 
 
@@ -84,6 +84,8 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
             return SolarSolutionListSerializer
         elif self.action == 'create':
             return SolarSolutionCreateSerializer
+        elif self.action == 'retrieve':
+            return SolarSolutionDetailSerializer
 
     def get_queryset(self):
         if self.action == 'list':
@@ -98,6 +100,13 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
             ).select_related(
                 'seller__userprofile__company'  # Select related to optimize the query for the city filter
             )
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.refresh_from_db()
+        serializer = self.get_serializer(instance)
+
+        return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
         data = request.data

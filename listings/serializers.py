@@ -42,6 +42,18 @@ class SolarSolutionCreateSerializer(serializers.ModelSerializer):
                   'components', 'services']
 
 
+class SolarSolutionDetailSerializer(serializers.ModelSerializer):
+    tags = TagSerializer(many=True)
+    components = SolutionDetailsSerializer(many=True)
+    services = ServiceSerializer(many=True)
+    images = SolutionMediaSerializer(many=True, source='mediafiles')  # Use the related name for images
+
+    class Meta:
+        model = SolarSolution
+        fields = ['id', 'size', 'price', 'solution_type', 'tags', 'completion_time_days',
+                  'payment_schedule', 'components', 'services', 'images']
+
+
 class BuyerInteractionSerializer(serializers.ModelSerializer):
     whatsapp_number = serializers.CharField()
 
