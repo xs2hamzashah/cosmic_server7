@@ -21,7 +21,15 @@ from django.db.models import Prefetch, Q
 class SolarSolutionViewSet(viewsets.ModelViewSet):
     queryset = SolarSolution.objects.all()
     serializer_class = SolarSolutionListSerializer  # default fallback
-    permission_classes = [AllowAny]
+
+    def get_permissions(self):
+        """
+        Instantiates the appropriate permission instances based on action.
+        """
+        if self.action == 'create':
+            return [IsSeller()]
+            # Add other permission classes for other actions as needed.
+        return [AllowAny()]
 
     class SolarSolutionFilter(django_filters.FilterSet):
         CITY_CHOICES = (
@@ -49,10 +57,12 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
                                     method='filter_by_city')
         size = filters.ChoiceFilter(choices=SYSTEM_SIZE_CHOICES, field_name='size')
         price = filters.ChoiceFilter(choices=PRICE_RANGES, method='filter_by_price')
+        is_seller_page = filters.BooleanFilter(field_name='seller_page', method='filter_by_is_seller_page',
+                                            label='Show only seller\'s listing')
 
         class Meta:
             model = SolarSolution
-            fields = ['size', 'price', 'city']
+            fields = ['size', 'price', 'city', 'is_seller_page']
 
         def filter_by_city(self, queryset, name, value):
             value = value.upper()
@@ -75,6 +85,11 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
             elif value == 'above_3M':
                 return queryset.filter(price__gt=3000000)
             return queryset
+
+        def filter_by_is_seller_page(self, queryset, name, value):
+            if value and self.request.user.is_authenticated and self.request.user.userprofile.role == 'seller':
+                return queryset.filter(seller=self.request.user.userprofile)
+            return queryset  # Return the original queryset if conditions are not met
 
     filter_backends = [DjangoFilterBackend]
     filterset_class = SolarSolutionFilter
@@ -110,8 +125,6 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         data = request.data
-        if not request.user.is_authenticated:
-            return Response({'error': 'User must be authenticated'}, status=403)
 
         tags_data = data.pop('tags', [])
         # Handle tags
@@ -154,8 +167,6 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())  # Use the filter here
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-
-        # Define an action for media upload with custom swagger schema
 
     @action(detail=True, methods=['post'], parser_classes=[MultiPartParser, FormParser, JSONParser])
     def upload_media(self, request, pk=None):
