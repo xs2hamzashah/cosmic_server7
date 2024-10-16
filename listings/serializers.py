@@ -34,24 +34,24 @@ class ServiceSerializer(serializers.ModelSerializer):
 class SolarSolutionCreateSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, required=False)  # will check if it required or not
     components = SolutionDetailsSerializer(many=True)
-    services = ServiceSerializer(many=True)
+    service = ServiceSerializer()
 
     class Meta:
         model = SolarSolution
         fields = ['size', 'price', 'solution_type', 'tags', 'completion_time_days', 'payment_schedule',
-                  'components', 'services']
+                  'components', 'service']
 
 
 class SolarSolutionDetailSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
     components = SolutionDetailsSerializer(many=True)
-    services = ServiceSerializer(many=True)
+    service = ServiceSerializer()
     images = SolutionMediaSerializer(many=True, source='mediafiles')  # Use the related name for images
 
     class Meta:
         model = SolarSolution
         fields = ['id', 'size', 'price', 'solution_type', 'tags', 'completion_time_days',
-                  'payment_schedule', 'components', 'services', 'images']
+                  'payment_schedule', 'components', 'service', 'images']
 
 
 class BuyerInteractionSerializer(serializers.ModelSerializer):

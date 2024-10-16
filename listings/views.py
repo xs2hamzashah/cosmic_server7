@@ -27,7 +27,7 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
         Instantiates the appropriate permission instances based on action.
         """
         if self.action == 'create':
-            return [IsSeller()]
+            return [AllowAny()]
             # Add other permission classes for other actions as needed.
         return [AllowAny()]
 
@@ -110,10 +110,10 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
             return SolarSolution.objects.prefetch_related(
                 'tags',
                 Prefetch('mediafiles', queryset=SolutionMedia.objects.filter(is_display_image=True)),
-                'components',
-                'services'
+                'components'
             ).select_related(
-                'seller__userprofile__company'  # Select related to optimize the query for the city filter
+                'seller__userprofile__company',  # Select related to optimize the query for the city filter
+                'service'
             )
 
     def retrieve(self, request, *args, **kwargs):
@@ -137,7 +137,7 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
 
         components_data = data.pop('components', [])
-        services_data = data.pop('services', [])
+        service = data.pop('service', [])
 
         # Create the SolarSolution instance
         solar_solution = SolarSolution.objects.create(
@@ -155,9 +155,8 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
         for component in components_data:
             SolutionDetails.objects.create(solar_solution=solar_solution, **component)
 
-        # Handle services
-        for service in services_data:
-            Service.objects.create(solution=solar_solution, **service)
+        # Handle service
+        Service.objects.create(solution=solar_solution, **service)
 
         # Create Approval entry for the newly created SolarSolution
         Approval.objects.create(solution=solar_solution)

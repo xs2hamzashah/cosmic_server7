@@ -114,7 +114,7 @@ class SolutionDetails(TimeStampedModel):
 
 
 class Service(TimeStampedModel):
-    solution = models.ForeignKey(SolarSolution, related_name='services', on_delete=models.CASCADE)
+    solution = models.OneToOneField(SolarSolution, related_name='service', on_delete=models.CASCADE)
     dc_earthing_included = models.BooleanField(default=False, help_text="Is DC Earthing included?")
     afss_included = models.BooleanField(default=False, help_text="Is AFSS included?")
     afss_warranty_years = models.PositiveIntegerField(null=True, blank=True,
