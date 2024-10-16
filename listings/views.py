@@ -4,6 +4,7 @@ from django_filters import filters
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.generics import ListAPIView
 from rest_framework.parsers import FormParser, MultiPartParser, JSONParser
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
@@ -14,7 +15,7 @@ from accounts.permissions import IsAdmin, IsSeller
 from operations.models import Approval
 from .models import SolarSolution, Tag, SolutionMedia, SolutionDetails, Service
 from .serializers import SolarSolutionListSerializer, SolarSolutionCreateSerializer, SolutionMediaSerializer, \
-    SellerReportSerializer, SolarSolutionDetailSerializer
+    SellerReportSerializer, SolarSolutionDetailSerializer, TagSerializer
 from django.db.models import Prefetch, Q
 
 
@@ -239,3 +240,10 @@ class AnalyticsViewSet(viewsets.ViewSet):
         }
 
         return Response({'report': seller_data}, status=status.HTTP_200_OK)
+
+
+class TagListView(ListAPIView):
+    queryset = Tag.objects.all()
+    serializer_class = TagSerializer
+    permission_classes = [AllowAny]
+
