@@ -13,9 +13,10 @@ from rest_framework import status
 from accounts.models import UserProfile
 from accounts.permissions import IsAdmin, IsSeller
 from operations.models import Approval
-from .models import SolarSolution, Tag, SolutionMedia, SolutionDetails, Service
+from .models import SolarSolution, Tag, SolutionMedia, SolutionComponent, Service
 from .serializers import SolarSolutionListSerializer, SolarSolutionCreateSerializer, SolutionMediaSerializer, \
-    SellerReportSerializer, SolarSolutionDetailSerializer, TagSerializer, SolarSolutionUpdateSerializer
+    SellerReportSerializer, SolarSolutionDetailSerializer, TagSerializer, SolarSolutionUpdateSerializer, \
+    SolutionComponentSerializer
 from django.db.models import Prefetch, Q
 
 
@@ -154,12 +155,12 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
         serializer.is_valid(raise_exception=True)
         updated_solution = serializer.save()
 
-        # Handle components (SolutionDetails)
+        # Handle components (SolutionComponent)
         components_data = request.data.get('components', [])
         if components_data:
             updated_solution.components.all().delete()  # Clear existing components
             for component in components_data:
-                SolutionDetails.objects.create(solar_solution=updated_solution, **component)
+                SolutionComponent.objects.create(solar_solution=updated_solution, **component)
 
         # Handle service
         service_data = request.data.get('service', None)
@@ -192,11 +193,11 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
         serializer = SolarSolutionUpdateSerializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
 
-        # Handle components (SolutionDetails)
+        # Handle components (SolutionComponent)
         components_data = serializer.validated_data.pop('components', None)
         if components_data:
             for component in components_data:
-                SolutionDetails.objects.create(solar_solution=instance, **component)
+                SolutionComponent.objects.create(solar_solution=instance, **component)
 
         # Handle service
         service_data = serializer.validated_data.pop('service', None)
@@ -256,6 +257,12 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
         # Create a SolutionMedia instance
         SolutionMedia.objects.create(solution=solar_solution, **serializer.validated_data)
         return Response({'status': 'media file uploaded'}, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=['get'])
+    def available_components(self, request):
+        components = SolutionComponent.objects.all()  # Get all available components
+        serializer = SolutionComponentSerializer(components, many=True)  # Serialize the components
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class AnalyticsViewSet(viewsets.ViewSet):

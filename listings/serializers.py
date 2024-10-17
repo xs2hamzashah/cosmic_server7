@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import SolarSolution, Tag, SolutionMedia, SolutionDetails, Service, BuyerInteraction
+from .models import SolarSolution, Tag, SolutionMedia, SolutionComponent, Service, BuyerInteraction
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -16,10 +16,10 @@ class SolutionMediaSerializer(serializers.ModelSerializer):
         fields = ['image', 'is_display_image']
 
 
-class SolutionDetailsSerializer(serializers.ModelSerializer):
+class SolutionComponentSerializer(serializers.ModelSerializer):
     class Meta:
-        model = SolutionDetails
-        fields = ['details_type', 'brand', 'capacity', 'quantity', 'warranty',
+        model = SolutionComponent
+        fields = ['component_type', 'brand', 'capacity', 'quantity', 'warranty',
                   'details', 'mechanical_material', 'mechanical_structure_type',
                   'civil_material', 'wire_material']
 
@@ -41,7 +41,7 @@ class SolarSolutionCreateSerializer(serializers.ModelSerializer):
 
 class SolarSolutionUpdateSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True, required=False)
-    components = SolutionDetailsSerializer(many=True, required=False)
+    components = SolutionComponentSerializer(many=True, required=False)
     service = ServiceSerializer(required=False)
 
     class Meta:
@@ -52,7 +52,7 @@ class SolarSolutionUpdateSerializer(serializers.ModelSerializer):
 
 class SolarSolutionDetailSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
-    components = SolutionDetailsSerializer(many=True)
+    components = SolutionComponentSerializer(many=True)
     service = ServiceSerializer()
     images = SolutionMediaSerializer(many=True, source='mediafiles')  # Use the related name for images
 

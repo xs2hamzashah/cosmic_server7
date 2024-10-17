@@ -51,7 +51,7 @@ class SolutionMedia(TimeStampedModel):
         return f"Image for {self.solution} (Display: {self.is_display_image})"
 
 
-class DetailsType(models.TextChoices):
+class ComponentType(models.TextChoices):
     PV_MODULE = 'PV Module', 'PV Module'
     INVERTER = 'Inverter', 'Inverter'
     BATTERY = 'Battery', 'Battery'
@@ -89,10 +89,10 @@ class CivilMaterial(models.TextChoices):
     OTHER = 'Other', 'Other'
 
 
-class SolutionDetails(TimeStampedModel):
+class SolutionComponent(TimeStampedModel):
     solar_solution = models.ForeignKey(SolarSolution, on_delete=models.CASCADE, related_name='components')
-    details_type = models.CharField(max_length=50,
-                                    choices=DetailsType.choices)  # Identifies the type of solar solution details
+    component_type = models.CharField(max_length=50,
+                                    choices=ComponentType.choices)  # Identifies the type of solar solution details
     brand = models.CharField(max_length=100, blank=True, null=True)  # Optional, not always applicable
     capacity = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)  # Optional
     quantity = models.PositiveIntegerField(default=1)  # Can be used for counts or multiples of work done
@@ -110,7 +110,7 @@ class SolutionDetails(TimeStampedModel):
                                      null=True)  # Wire work
 
     def __str__(self):
-        return f"{self.details_type} for {self.solar_solution}"
+        return f"{self.component_type} for {self.solar_solution}"
 
 
 class Service(TimeStampedModel):
