@@ -32,9 +32,17 @@ class ServiceSerializer(serializers.ModelSerializer):
 
 
 class SolarSolutionCreateSerializer(serializers.ModelSerializer):
-    tags = TagSerializer(many=True, required=False)  # will check if it required or not
-    components = SolutionDetailsSerializer(many=True)
-    service = ServiceSerializer()
+    id = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = SolarSolution
+        fields = ['id' ,'size', 'price', 'solution_type']
+
+
+class SolarSolutionUpdateSerializer(serializers.ModelSerializer):
+    tags = TagSerializer(many=True, required=False)
+    components = SolutionDetailsSerializer(many=True, required=False)
+    service = ServiceSerializer(required=False)
 
     class Meta:
         model = SolarSolution

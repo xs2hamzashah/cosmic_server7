@@ -15,13 +15,23 @@ from accounts.permissions import IsAdmin, IsSeller
 from operations.models import Approval
 from .models import SolarSolution, Tag, SolutionMedia, SolutionDetails, Service
 from .serializers import SolarSolutionListSerializer, SolarSolutionCreateSerializer, SolutionMediaSerializer, \
-    SellerReportSerializer, SolarSolutionDetailSerializer, TagSerializer
+    SellerReportSerializer, SolarSolutionDetailSerializer, TagSerializer, SolarSolutionUpdateSerializer
 from django.db.models import Prefetch, Q
 
 
 class SolarSolutionViewSet(viewsets.ModelViewSet):
     queryset = SolarSolution.objects.all()
     serializer_class = SolarSolutionListSerializer  # default fallback
+
+    def get_serializer_class(self):
+        if self.action == 'list':
+            return SolarSolutionListSerializer
+        elif self.action == 'create':
+            return SolarSolutionCreateSerializer
+        elif self.action == 'retrieve':
+            return SolarSolutionDetailSerializer
+        elif self.action in ['update', 'partial_update']:
+            return SolarSolutionUpdateSerializer
 
     def get_permissions(self):
         """
@@ -95,13 +105,6 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend]
     filterset_class = SolarSolutionFilter
 
-    def get_serializer_class(self):
-        if self.action == 'list':
-            return SolarSolutionListSerializer
-        elif self.action == 'create':
-            return SolarSolutionCreateSerializer
-        elif self.action == 'retrieve':
-            return SolarSolutionDetailSerializer
 
     def get_queryset(self):
         if self.action == 'list':
@@ -127,41 +130,95 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         data = request.data
 
-        tags_data = data.pop('tags', [])
+        # Validate and save the SolarSolution instance
+        serializer = SolarSolutionCreateSerializer(data=data)
+        serializer.is_valid(raise_exception=True)
+
+        # Create the SolarSolution instance
+        solar_solution = serializer.save(seller=request.user)
+
+        # Create Approval entry for the newly created SolarSolution
+        Approval.objects.create(solution=solar_solution)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        tags_data = request.data.pop('tags', [])
         # Handle tags
         tags = []
         for tag_data in tags_data:
             tag, created = Tag.objects.get_or_create(**tag_data)
             tags.append(tag)
 
-        serializer = self.get_serializer(data=data)
+        serializer = SolarSolutionUpdateSerializer(instance, data=request.data)
         serializer.is_valid(raise_exception=True)
-
-        components_data = data.pop('components', [])
-        service = data.pop('service', [])
-
-        # Create the SolarSolution instance
-        solar_solution = SolarSolution.objects.create(
-            size=data['size'],
-            price=data['price'],
-            solution_type=data['solution_type'],
-            completion_time_days=data['completion_time_days'],
-            payment_schedule=data['payment_schedule'],
-            seller=request.user
-        )
-
-        solar_solution.tags.set(tags)
+        updated_solution = serializer.save()
 
         # Handle components (SolutionDetails)
-        for component in components_data:
-            SolutionDetails.objects.create(solar_solution=solar_solution, **component)
+        components_data = request.data.get('components', [])
+        if components_data:
+            updated_solution.components.all().delete()  # Clear existing components
+            for component in components_data:
+                SolutionDetails.objects.create(solar_solution=updated_solution, **component)
 
         # Handle service
-        Service.objects.create(solution=solar_solution, **service)
+        service_data = request.data.get('service', None)
+        if service_data:
+            service_instance = updated_solution.service.first()
+            if service_instance:
+                for attr, value in service_data.items():
+                    setattr(service_instance, attr, value)
+                service_instance.save()
+            else:
+                Service.objects.create(solution=updated_solution, **service_data)
 
-        # Create Approval entry for the newly created SolarSolution
-        Approval.objects.create(solution=solar_solution)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def partial_update(self, request, *args, **kwargs):
+        print("Partial update called")
+        instance = self.get_object()
+
+        # First, handle the tags to avoid unique constraint errors
+        tags_data = request.data.pop('tags', None)  # Extract tags from request.data
+        if tags_data is not None:
+            tags = []
+            for tag_data in tags_data:
+                tag_name = tag_data.get('name')
+                # Check if the tag already exists
+                tag, created = Tag.objects.get_or_create(name=tag_name)
+                tags.append(tag)
+            instance.tags.set(tags)  # Update tags on the instance
+
+        serializer = SolarSolutionUpdateSerializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+
+        # Handle components (SolutionDetails)
+        components_data = serializer.validated_data.pop('components', None)
+        if components_data:
+            for component in components_data:
+                SolutionDetails.objects.create(solar_solution=instance, **component)
+
+        # Handle service
+        service_data = serializer.validated_data.pop('service', None)
+        if service_data:
+            solar_solution_service = Service.objects.filter(solution=instance).first()  # Get the first match
+
+            if solar_solution_service:
+                # Update the existing service
+                for attr, value in service_data.items():
+                    setattr(solar_solution_service, attr, value)
+                solar_solution_service.save()
+            else:
+                # If no service exists, create a new one
+                Service.objects.create(solution=instance, **service_data)
+
+        # Update the main fields
+        for attr, value in serializer.validated_data.items():
+            setattr(instance, attr, value)
+
+        instance.save()
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())  # Use the filter here
