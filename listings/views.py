@@ -34,6 +34,10 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
         elif self.action in ['update', 'partial_update']:
             return SolarSolutionUpdateSerializer
 
+        # Add a fallback to prevent returning None
+        return self.serializer_class
+
+
     def get_permissions(self):
         """
         Instantiates the appropriate permission instances based on action.
