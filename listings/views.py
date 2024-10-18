@@ -203,12 +203,6 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
         SolutionMedia.objects.create(solution=solar_solution, **serializer.validated_data)
         return Response({'status': 'media file uploaded'}, status=status.HTTP_201_CREATED)
 
-    @action(detail=False, methods=['get'])
-    def available_components(self, request):
-        components = SolutionComponent.objects.all()  # Get all available components
-        serializer = SolutionComponentSerializer(components, many=True)  # Serialize the components
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
 
 class AnalyticsViewSet(viewsets.ViewSet):
 
