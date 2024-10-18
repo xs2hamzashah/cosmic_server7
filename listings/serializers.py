@@ -3,9 +3,11 @@ from .models import SolarSolution, Tag, SolutionMedia, SolutionComponent, Servic
 
 
 class TagSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(read_only=True)
+
     class Meta:
         model = Tag
-        fields = ['name']
+        fields = ['id', 'name']
 
 
 class SolutionMediaSerializer(serializers.ModelSerializer):
@@ -17,9 +19,11 @@ class SolutionMediaSerializer(serializers.ModelSerializer):
 
 
 class SolutionComponentSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(read_only=True)
+
     class Meta:
         model = SolutionComponent
-        fields = ['component_type', 'brand', 'capacity', 'quantity', 'warranty',
+        fields = ['id', 'component_type', 'brand', 'capacity', 'quantity', 'warranty',
                   'details', 'mechanical_material', 'mechanical_structure_type',
                   'civil_material', 'wire_material']
 
@@ -40,15 +44,36 @@ class SolarSolutionCreateSerializer(serializers.ModelSerializer):
 
 
 class SolarSolutionUpdateSerializer(serializers.ModelSerializer):
-    tags = TagSerializer(many=True, required=False)
-    components = SolutionComponentSerializer(many=True, required=False)
+    component_ids = serializers.ListField(child=serializers.IntegerField(), write_only=True,
+                                          required=False)
+    tag_ids = serializers.ListField(child=serializers.IntegerField(), write_only=True,
+                                    required=False)
     service = ServiceSerializer(required=False)
 
     class Meta:
         model = SolarSolution
-        fields = ['size', 'price', 'solution_type', 'tags', 'completion_time_days', 'payment_schedule',
-                  'components', 'service']
+        fields = ['size', 'price', 'solution_type', 'tag_ids', 'completion_time_days',
+                  'payment_schedule', 'component_ids', 'service']
 
+    def validate_component_ids(self, value):
+        # Check if all component IDs are valid
+        invalid_ids = []
+        for component_id in value:
+            if not SolutionComponent.objects.filter(id=component_id).exists():
+                invalid_ids.append(component_id)
+        if invalid_ids:
+            raise serializers.ValidationError(f"Invalid component IDs: {', '.join(map(str, invalid_ids))}")
+        return value
+
+    def validate_tag_ids(self, value):
+        # Check if all tag IDs are valid
+        invalid_ids = []
+        for tag_id in value:
+            if not Tag.objects.filter(id=tag_id).exists():
+                invalid_ids.append(tag_id)
+        if invalid_ids:
+            raise serializers.ValidationError(f"Invalid tag IDs: {', '.join(map(str, invalid_ids))}")
+        return value
 
 class SolarSolutionDetailSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True)

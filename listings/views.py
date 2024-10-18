@@ -1,17 +1,17 @@
 import django_filters
-from django.contrib.auth import get_user_model
 from django_filters import filters
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.decorators import action
-from rest_framework.generics import ListAPIView
+from rest_framework.filters import SearchFilter
+from rest_framework.generics import ListCreateAPIView
 from rest_framework.parsers import FormParser, MultiPartParser, JSONParser
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 
 from accounts.models import UserProfile
-from accounts.permissions import IsAdmin, IsSeller
+from accounts.permissions import IsAdmin, IsSeller, IsAdminOrSeller
 from operations.models import Approval
 from .models import SolarSolution, Tag, SolutionMedia, SolutionComponent, Service
 from .serializers import SolarSolutionListSerializer, SolarSolutionCreateSerializer, SolutionMediaSerializer, \
@@ -128,98 +128,43 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
 
         return Response(serializer.data)
 
-    def create(self, request, *args, **kwargs):
-        data = request.data
+    def perform_create(self, serializer):
 
-        # Validate and save the SolarSolution instance
-        serializer = SolarSolutionCreateSerializer(data=data)
-        serializer.is_valid(raise_exception=True)
-
-        # Create the SolarSolution instance
-        solar_solution = serializer.save(seller=request.user)
-
-        # Create Approval entry for the newly created SolarSolution
+        solar_solution = serializer.save(seller=self.request.user)
         Approval.objects.create(solution=solar_solution)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
-    def update(self, request, *args, **kwargs):
-        instance = self.get_object()
-        tags_data = request.data.pop('tags', [])
+    def perform_update(self, serializer):
+        instance = serializer.save()  # Save the instance first
+
+        # Handle existing components
+        component_ids = serializer.validated_data.get('component_ids', [])
+        if component_ids:
+            existing_components = SolutionComponent.objects.filter(id__in=component_ids)
+            instance.components.set(existing_components)
+
         # Handle tags
-        tags = []
-        for tag_data in tags_data:
-            tag, created = Tag.objects.get_or_create(**tag_data)
-            tags.append(tag)
-
-        serializer = SolarSolutionUpdateSerializer(instance, data=request.data)
-        serializer.is_valid(raise_exception=True)
-        updated_solution = serializer.save()
-
-        # Handle components (SolutionComponent)
-        components_data = request.data.get('components', [])
-        if components_data:
-            updated_solution.components.all().delete()  # Clear existing components
-            for component in components_data:
-                SolutionComponent.objects.create(solar_solution=updated_solution, **component)
+        tag_ids = serializer.validated_data.get('tag_ids', [])
+        if tag_ids:
+            existing_tags = Tag.objects.filter(id__in=tag_ids)
+            instance.tags.set(existing_tags)
 
         # Handle service
-        service_data = request.data.get('service', None)
+        service_data = serializer.validated_data.get('service', None)
         if service_data:
-            service_instance = updated_solution.service.first()
+            service_instance = instance.service.first()
             if service_instance:
                 for attr, value in service_data.items():
                     setattr(service_instance, attr, value)
                 service_instance.save()
             else:
-                Service.objects.create(solution=updated_solution, **service_data)
-
-        return Response(serializer.data, status=status.HTTP_200_OK)
-
-    def partial_update(self, request, *args, **kwargs):
-        print("Partial update called")
-        instance = self.get_object()
-
-        # First, handle the tags to avoid unique constraint errors
-        tags_data = request.data.pop('tags', None)  # Extract tags from request.data
-        if tags_data is not None:
-            tags = []
-            for tag_data in tags_data:
-                tag_name = tag_data.get('name')
-                # Check if the tag already exists
-                tag, created = Tag.objects.get_or_create(name=tag_name)
-                tags.append(tag)
-            instance.tags.set(tags)  # Update tags on the instance
-
-        serializer = SolarSolutionUpdateSerializer(instance, data=request.data, partial=True)
-        serializer.is_valid(raise_exception=True)
-
-        # Handle components (SolutionComponent)
-        components_data = serializer.validated_data.pop('components', None)
-        if components_data:
-            for component in components_data:
-                SolutionComponent.objects.create(solar_solution=instance, **component)
-
-        # Handle service
-        service_data = serializer.validated_data.pop('service', None)
-        if service_data:
-            solar_solution_service = Service.objects.filter(solution=instance).first()  # Get the first match
-
-            if solar_solution_service:
-                # Update the existing service
-                for attr, value in service_data.items():
-                    setattr(solar_solution_service, attr, value)
-                solar_solution_service.save()
-            else:
-                # If no service exists, create a new one
                 Service.objects.create(solution=instance, **service_data)
 
-        # Update the main fields
-        for attr, value in serializer.validated_data.items():
-            setattr(instance, attr, value)
-
-        instance.save()
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())  # Use the filter here
@@ -306,8 +251,35 @@ class AnalyticsViewSet(viewsets.ViewSet):
         return Response({'report': seller_data}, status=status.HTTP_200_OK)
 
 
-class TagListView(ListAPIView):
+class ComponentAPIView(ListCreateAPIView):
+    queryset = SolutionComponent.objects.all()
+    serializer_class = SolutionComponentSerializer
+    permission_classes = [IsAdminOrSeller]
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_fields = ['component_type']
+    search_fields = ['component_type']
+    ordering_fields = ['component_type']
+    ordering = ['component_type']
+
+    def get_queryset(self):
+        return SolutionComponent.objects.all().order_by('component_type')
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+
+class TagAPIView(ListCreateAPIView):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [IsAdminOrSeller]
+    filter_backends = [DjangoFilterBackend, SearchFilter]
+    filterset_fields = ['name']
+    search_fields = ['name']
+    ordering_fields = ['name']
+    ordering = ['name']
 
+    def get_queryset(self):
+        return Tag.objects.all().order_by('name')
+
+    def perform_create(self, serializer):
+        serializer.save()

@@ -28,3 +28,11 @@ class IsBuyer(BaseRolePermission):
         if request.user.is_authenticated:
             return IsAuthenticated and super().has_permission(request, view) or request.user.userprofile.role == 'buyer'
         return False
+
+
+class IsAdminOrSeller(BasePermission):
+    def has_permission(self, request, view):
+        return (
+            request.user.is_authenticated and
+            (request.user.is_staff or request.user.userprofile.role == 'seller')
+        )
