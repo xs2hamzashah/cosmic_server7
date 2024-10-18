@@ -23,6 +23,8 @@ from django.db.models import Prefetch, Q
 class SolarSolutionViewSet(viewsets.ModelViewSet):
     queryset = SolarSolution.objects.all()
     serializer_class = SolarSolutionListSerializer  # default fallback
+    # ordering fields
+    # search fields
 
     def get_serializer_class(self):
         if self.action == 'list':
