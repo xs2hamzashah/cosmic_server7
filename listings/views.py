@@ -169,6 +169,19 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         serializer = self.get_serializer(instance, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
+
+        # handle service in here
+        service_data = serializer.validated_data.pop('service', None)
+        if service_data:
+            services_qs = Service.objects.filter(solution=instance)
+            if services_qs:
+                service_instance = services_qs.first()
+                for attr, value in service_data.items():
+                    setattr(service_instance, attr, value)
+                service_instance.save()
+            else:
+                Service.objects.create(solution=instance, **service_data)
+
         self.perform_update(serializer)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
