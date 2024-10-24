@@ -157,8 +157,9 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
         # Handle service
         service_data = serializer.validated_data.get('service', None)
         if service_data:
-            service_instance = instance.service.first()
-            if service_instance:
+            services_qs = Service.objects.filter(solution=instance)
+            if services_qs:
+                service_instance = services_qs.first()
                 for attr, value in service_data.items():
                     setattr(service_instance, attr, value)
                 service_instance.save()
