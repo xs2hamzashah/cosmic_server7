@@ -98,6 +98,7 @@ class BuyerInteractionSerializer(serializers.ModelSerializer):
 class SolarSolutionListSerializer(serializers.ModelSerializer):
     # buyer_interaction_count, buyer_whatsapp_count, these fields will be be included on the Seller Page
     # we'll make enhancement for this in Future.
+    # or we create another Seperate Api for seller page
     buyer_interaction_count = serializers.SerializerMethodField()
     buyer_whatsapp_numbers = BuyerInteractionSerializer(many=True, source='interactions')
     images = SolutionMediaSerializer(many=True, source='mediafiles')  # Use the related name for images
