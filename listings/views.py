@@ -223,6 +223,10 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
 class AnalyticsViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'], permission_classes=[IsAdmin])
+    @swagger_auto_schema(
+        operation_description="Seller Analytics",
+        responses={200: SellerReportSerializer()}
+    )
     def admin_analytics(self, request):
         sellers = UserProfile.objects.filter(role='seller')
         report = []
@@ -245,6 +249,10 @@ class AnalyticsViewSet(viewsets.ViewSet):
         return Response({'report': serialized_report.data}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], permission_classes=[IsSeller])
+    @swagger_auto_schema(
+        operation_description="Admin Analytics",
+        responses={200: SellerReportSerializer()}
+    )
     def seller_analytics(self, request, pk=None):
         seller = request.user
         solar_products = SolarSolution.objects.filter(seller=seller)
