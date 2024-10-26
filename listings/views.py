@@ -39,15 +39,15 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
         # Add a fallback to prevent returning None
         return self.serializer_class
 
-
     def get_permissions(self):
         """
         Instantiates the appropriate permission instances based on action.
         """
-        if self.action == 'create':
+        if self.action in ['create', 'partial_update']:
+            return [IsAdminOrSeller()]
+        elif self.action in ['list', 'retrieve']:
             return [AllowAny()]
-            # Add other permission classes for other actions as needed.
-        return [AllowAny()]
+        return [IsAdminOrSeller()]
 
     class SolarSolutionFilter(django_filters.FilterSet):
         CITY_CHOICES = (
