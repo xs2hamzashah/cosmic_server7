@@ -1,4 +1,7 @@
 from rest_framework import serializers
+
+from operations.models import Approval
+from operations.serializers import ApprovalSerializer
 from .models import SolarSolution, Tag, SolutionMedia, SolutionComponent, Service, BuyerInteraction
 
 
@@ -75,16 +78,23 @@ class SolarSolutionUpdateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(f"Invalid tag IDs: {', '.join(map(str, invalid_ids))}")
         return value
 
+
+class SolarSolutionApprovalSerializer(ApprovalSerializer):
+    class Meta:
+        model = Approval
+        fields = ['admin_verified']
+
 class SolarSolutionDetailSerializer(serializers.ModelSerializer):
     tags = TagSerializer(many=True)
     components = SolutionComponentSerializer(many=True)
     service = ServiceSerializer()
     images = SolutionMediaSerializer(many=True, source='mediafiles')  # Use the related name for images
+    approval = SolarSolutionApprovalSerializer()
 
     class Meta:
         model = SolarSolution
         fields = ['id', 'size', 'price', 'solution_type', 'tags', 'completion_time_days',
-                  'payment_schedule', 'components', 'service', 'images']
+                  'payment_schedule', 'components', 'service', 'images', 'approval']
 
 
 class BuyerInteractionSerializer(serializers.ModelSerializer):

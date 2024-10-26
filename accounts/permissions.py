@@ -34,5 +34,5 @@ class IsAdminOrSeller(BasePermission):
     def has_permission(self, request, view):
         return (
             request.user.is_authenticated and
-            (request.user.is_staff or request.user.userprofile.role == 'seller')
+            (request.user.is_staff or request.user.userprofile.role in ['seller', 'admin'])
         )

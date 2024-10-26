@@ -45,7 +45,7 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
         """
         Instantiates the appropriate permission instances based on action.
         """
-        if self.action in ['create', 'partial_update']:
+        if self.action in ['create', 'update', 'partial_update']:
             return [IsAdminOrSeller()]
         elif self.action in ['list', 'retrieve']:
             return [AllowAny()]

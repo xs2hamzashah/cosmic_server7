@@ -5,7 +5,7 @@ from listings.models import SolarSolution
 
 
 class Approval(TimeStampedModel):
-    solution = models.ForeignKey(SolarSolution, related_name='approvals', on_delete=models.CASCADE)
+    solution = models.OneToOneField(SolarSolution, related_name='approval', on_delete=models.CASCADE)
     admin_verified = models.BooleanField(default=False, help_text="Has the admin verified the listing?")
     discrepancy = models.TextField(null=True, blank=True, help_text="Details of any discrepancy found during review")
     discrepancy_resolved = models.BooleanField(default=False, help_text="Has the discrepancy been resolved?")

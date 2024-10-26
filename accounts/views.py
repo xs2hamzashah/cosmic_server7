@@ -10,6 +10,7 @@ from rest_framework.response import Response
 
 from cosmic_server7 import settings
 from .models import UserProfile
+from .permissions import IsAdmin
 from .serializers import UserProfileSerializer, ForgotPasswordSerializer, PasswordResetSerializer
 
 
@@ -30,9 +31,15 @@ class UserProfileViewSet(viewsets.ModelViewSet):
             model = UserProfile
             fields = ['role']
 
-    permission_classes = [AllowAny]
     filter_backends = [DjangoFilterBackend]
     filterset_class = UserProfileFilter  # Use the custom filter class
+
+    def get_permissions(self):
+        if self.action in ['list', 'create']:
+            return [AllowAny()]
+        elif self.action in ['update', 'partial_update', 'retrieve', 'destroy']:
+            return [IsAdmin()]
+        return [AllowAny()]
 
     def destroy(self, request, *args, **kwargs):
         # Get the UserProfile instance
