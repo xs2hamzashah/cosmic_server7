@@ -126,7 +126,7 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
                 'components'
             ).select_related(
                 'seller__userprofile__company',  # Select related to optimize the query for the city filter
-                'service'
+                'service', 'approval'
             ).order_by('id')
 
     def retrieve(self, request, *args, **kwargs):
