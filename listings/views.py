@@ -1,6 +1,8 @@
 import django_filters
 from django_filters import filters
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
@@ -191,38 +193,32 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    @action(detail=True, methods=['post'], parser_classes=[MultiPartParser, FormParser, JSONParser])
+    @action(detail=True, methods=['post'], parser_classes=[MultiPartParser, FormParser])
+    @swagger_auto_schema(
+        operation_description="Upload a media file for a SolarSolution.",
+        request_body=SolutionMediaSerializer,
+        responses={201: "Media uploaded", 400: "Invalid input"}
+    )
     def upload_media(self, request, pk=None):
         """
-        Upload media for a SolarSolution. Note: Swagger UI does not currently display the image upload field.
-        You can use form-data to upload an image (and the is_display_image field) into this API using tools like Postman
+        Upload a single media file for a SolarSolution.
         """
         solar_solution = self.get_object()  # Get the specific SolarSolution instance
 
-        # Get the uploaded media file
-        media_file = request.FILES.get('media')
-
-        # Get the is_display_image flag
-        is_display_image = request.data.get('is_display_image', False)
-
-        # Prepare data for the serializer
-        media_data = {
-            'image': media_file,
-            'is_display_image': is_display_image
-        }
-
         # Use the serializer to validate the data
-        serializer = SolutionMediaSerializer(data=media_data)
-        serializer.is_valid(raise_exception=True)  # Raises an error if validation fails
+        serializer = SolutionMediaSerializer(data=request.data)
+        if serializer.is_valid():
+            # Check if the current image is marked as display image
+            if serializer.validated_data.get('is_display_image'):
+                # Set all other images as not display image
+                SolutionMedia.objects.filter(solution=solar_solution, is_display_image=True).update(
+                    is_display_image=False)
 
-        # If the current image is marked as display image, update other images
-        if is_display_image:
-            SolutionMedia.objects.filter(solution=solar_solution, is_display_image=True).update(is_display_image=False)
+            # Create a SolutionMedia instance
+            serializer.save(solution=solar_solution)  # Save with the related solution
+            return Response({'status': 'media file uploaded'}, status=status.HTTP_201_CREATED)
 
-        # Create a SolutionMedia instance
-        SolutionMedia.objects.create(solution=solar_solution, **serializer.validated_data)
-        return Response({'status': 'media file uploaded'}, status=status.HTTP_201_CREATED)
-
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class AnalyticsViewSet(viewsets.ViewSet):
 
