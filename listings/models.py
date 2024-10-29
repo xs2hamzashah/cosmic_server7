@@ -54,12 +54,14 @@ class CivilMaterial(models.TextChoices):
 
 class SolutionComponent(TimeStampedModel):
     component_type = models.CharField(max_length=50, choices=ComponentType.choices)
+    subtype = models.CharField(max_length=100, blank=True, null=True)
     brand = models.CharField(max_length=100, blank=True, null=True)
     capacity = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     quantity = models.PositiveIntegerField(default=1)
     warranty = models.DecimalField(max_digits=4, decimal_places=1, default=1)
     details = models.TextField(blank=True, null=True)
-
+    ip_rating = models.CharField(max_length=10, blank=True, null=True, help_text="Enter the IP rating (e.g., IP65, IP67)")
+    total_backup_capacity = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
     mechanical_material = models.CharField(max_length=50, choices=MechanicalMaterial.choices, blank=True, null=True)
     mechanical_structure_type = models.CharField(max_length=50, choices=MechanicalStructureType.choices, blank=True, null=True)
 
@@ -67,7 +69,7 @@ class SolutionComponent(TimeStampedModel):
     wire_material = models.CharField(max_length=50, choices=WireMaterial.choices, blank=True, null=True)
 
     def __str__(self):
-        return f"{self.component_type}"
+        return f"{self.component_type} - {self.subtype}"
 
 
 class SolutionType(models.TextChoices):
@@ -107,8 +109,9 @@ class Service(TimeStampedModel):
                                                       help_text="AFSS warranty in years if included")
     online_monitoring_included = models.BooleanField(default=False, help_text="Is online monitoring included?")
     net_metering_included = models.BooleanField(default=False, help_text="Is net metering included?")
-    fire_extinguisher_included = models.BooleanField(default=False, help_text="Is HSE service included?")
+    hse_equipment_included = models.BooleanField(default=False, help_text="Is HSE service included?")
     transportation_included = models.BooleanField(default=True, help_text="Is transportation included?")
+    transportation_distance = models.PositiveIntegerField(blank=True, null=True, help_text="Enter the distance if transportation is included.")
 
 
 class BuyerInteraction(TimeStampedModel):

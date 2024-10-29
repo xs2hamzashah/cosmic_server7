@@ -274,8 +274,8 @@ class ComponentAPIView(ListCreateAPIView):
     serializer_class = SolutionComponentSerializer
     permission_classes = [IsAdminOrSeller]
     filter_backends = [DjangoFilterBackend, SearchFilter]
-    filterset_fields = ['component_type']
-    search_fields = ['component_type']
+    filterset_fields = ['component_type', 'subtype']
+    search_fields = ['component_type', 'subtype']
     ordering_fields = ['component_type']
     ordering = ['component_type']
 

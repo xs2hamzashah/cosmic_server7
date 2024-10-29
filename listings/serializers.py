@@ -26,7 +26,7 @@ class SolutionComponentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SolutionComponent
-        fields = ['id', 'component_type', 'brand', 'capacity', 'quantity', 'warranty',
+        fields = ['id', 'component_type', 'subtype', 'brand', 'capacity', 'quantity', 'warranty', 'ip_rating',
                   'details', 'mechanical_material', 'mechanical_structure_type',
                   'civil_material', 'wire_material']
 
@@ -35,7 +35,7 @@ class ServiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Service
         fields = ['dc_earthing_included', 'afss_included', 'afss_warranty_years', 'online_monitoring_included',
-                  'net_metering_included', 'fire_extinguisher_included', 'transportation_included']
+                  'net_metering_included', 'hse_equipment_included', 'transportation_included', 'transportation_distance']
 
 
 class SolarSolutionCreateSerializer(serializers.ModelSerializer):
