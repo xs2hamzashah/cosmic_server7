@@ -28,7 +28,7 @@ class SolutionComponentSerializer(serializers.ModelSerializer):
     class Meta:
         model = SolutionComponent
         fields = ['id', 'component_type', 'subtype', 'brand', 'capacity', 'quantity', 'warranty', 'ip_rating',
-                  'details', 'mechanical_material', 'mechanical_structure_type',
+                  'details', 'mechanical_material', 'mechanical_structure_type', 'total_backup_capacity',
                   'civil_material', 'wire_material']
 
 
