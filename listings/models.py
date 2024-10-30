@@ -102,6 +102,18 @@ class SolarSolution(TimeStampedModel):
     components = models.ManyToManyField(SolutionComponent, blank=True, related_name='solar_solutions')
     seller_note = models.TextField(validators=[MaxLengthValidator(1000)])  # Set max length to 500 characters
 
+# will use through model for the ManyToMany later
+# components = models.ManyToManyField(SolutionComponent, through='SolarSolutionComponent', related_name='solar_solutions')
+#
+# class SolarSolutionComponent(models.Model):
+#     solar_solution = models.ForeignKey(SolarSolution, on_delete=models.CASCADE)
+#     solution_component = models.ForeignKey(SolutionComponent, on_delete=models.CASCADE)
+#     quantity = models.PositiveIntegerField(default=1, help_text="Quantity of the component")
+#     condition = models.CharField(max_length=50, help_text="Condition of the component (e.g., new, used)")
+#
+#     class Meta:
+#         unique_together = ('solar_solution', 'solution_component')  # Ensure unique combinations
+
 
 class Service(TimeStampedModel):
     solution = models.OneToOneField(SolarSolution, related_name='service', on_delete=models.CASCADE)
