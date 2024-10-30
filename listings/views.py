@@ -269,7 +269,7 @@ class AnalyticsViewSet(viewsets.ViewSet):
         return Response({'report': seller_data}, status=status.HTTP_200_OK)
 
 
-class ComponentAPIView(ListCreateAPIView):
+class ComponentViewSet(viewsets.ModelViewSet):
     queryset = SolutionComponent.objects.all()
     serializer_class = SolutionComponentSerializer
     permission_classes = [IsAdminOrSeller]
