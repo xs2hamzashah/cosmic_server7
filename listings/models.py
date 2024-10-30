@@ -1,3 +1,4 @@
+from django.core.validators import MaxLengthValidator
 from django.db import models
 
 from core.models import TimeStampedModel
@@ -99,6 +100,7 @@ class SolarSolution(TimeStampedModel):
                                related_name='solar_solutions')
 
     components = models.ManyToManyField(SolutionComponent, blank=True, related_name='solar_solutions')
+    seller_note = models.TextField(validators=[MaxLengthValidator(1000)])  # Set max length to 500 characters
 
 
 class Service(TimeStampedModel):

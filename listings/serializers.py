@@ -1,3 +1,4 @@
+from django.core.validators import MaxLengthValidator
 from rest_framework import serializers
 
 from operations.models import Approval
@@ -52,11 +53,13 @@ class SolarSolutionUpdateSerializer(serializers.ModelSerializer):
     tag_ids = serializers.ListField(child=serializers.IntegerField(), write_only=True,
                                     required=False)
     service = ServiceSerializer(required=False)
+    seller_note = serializers.CharField(validators=[MaxLengthValidator(500)], required=False, allow_blank=True)
+
 
     class Meta:
         model = SolarSolution
         fields = ['size', 'price', 'solution_type', 'tag_ids', 'completion_time_days',
-                  'payment_schedule', 'component_ids', 'service']
+                  'payment_schedule', 'component_ids', 'service', 'seller_note']
 
     def validate_component_ids(self, value):
         # Check if all component IDs are valid
@@ -90,11 +93,13 @@ class SolarSolutionDetailSerializer(serializers.ModelSerializer):
     service = ServiceSerializer()
     images = SolutionMediaSerializer(many=True, source='mediafiles')  # Use the related name for images
     approval = SolarSolutionApprovalSerializer()
+    seller_note = serializers.CharField(validators=[MaxLengthValidator(500)], required=False, allow_blank=True)
+
 
     class Meta:
         model = SolarSolution
         fields = ['id', 'size', 'price', 'solution_type', 'tags', 'completion_time_days',
-                  'payment_schedule', 'components', 'service', 'images', 'approval']
+                  'payment_schedule', 'components', 'service', 'images', 'approval', 'seller_note']
 
 
 class BuyerInteractionSerializer(serializers.ModelSerializer):
@@ -112,11 +117,13 @@ class SolarSolutionListSerializer(serializers.ModelSerializer):
     buyer_interaction_count = serializers.SerializerMethodField()
     buyer_whatsapp_numbers = BuyerInteractionSerializer(many=True, source='interactions')
     images = SolutionMediaSerializer(many=True, source='mediafiles')  # Use the related name for images
+    seller_note = serializers.CharField(validators=[MaxLengthValidator(500)], required=False, allow_blank=True)
+
 
     class Meta:
         model = SolarSolution
         fields = ['id', 'size', 'price', 'solution_type', 'completion_time_days', 'payment_schedule',
-                  'buyer_interaction_count', 'buyer_whatsapp_numbers', 'images']
+                  'buyer_interaction_count', 'buyer_whatsapp_numbers', 'images', 'seller_note']
 
     def get_buyer_interaction_count(self, obj):
         # Count the number of interactions related to this SolarSolution
