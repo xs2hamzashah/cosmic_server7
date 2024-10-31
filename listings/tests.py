@@ -118,12 +118,12 @@ class ComponentListCreateTestCase(BaseTestCase):
     def test_list_components(self):
         SolutionComponent.objects.create(**self.valid_component_data)
 
-        response = self.client.get(reverse('component-list-create'))
+        response = self.client.get(reverse('component-list'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertGreater(len(response.data), 0)
 
     def test_create_component(self):
-        response = self.client.post(reverse('component-list-create'), self.valid_component_data, format='json')
+        response = self.client.post(reverse('component-list'), self.valid_component_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         component = SolutionComponent.objects.get(id=response.data['id'])
