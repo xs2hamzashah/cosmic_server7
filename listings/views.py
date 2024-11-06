@@ -262,11 +262,13 @@ class AnalyticsViewSet(viewsets.ViewSet):
 
         seller_data = {
             'seller_id': seller.id,
-            'seller_name': seller.user.full_name,
+            'seller_name': seller.full_name,
             'products': serialized_products
         }
+        # Use the SellerReportSerializer to serialize the seller data
+        serializer = SellerReportSerializer(seller_data)
 
-        return Response({'report': seller_data}, status=status.HTTP_200_OK)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class ComponentViewSet(viewsets.ModelViewSet):
