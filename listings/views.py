@@ -250,7 +250,7 @@ class AnalyticsViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'], permission_classes=[IsSeller])
     @swagger_auto_schema(
-        operation_description="Admin Analytics",
+        operation_description="Seller Analytics",
         responses={200: SellerReportSerializer()}
     )
     def seller_analytics(self, request, pk=None):
