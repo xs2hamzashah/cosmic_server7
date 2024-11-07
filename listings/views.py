@@ -257,17 +257,13 @@ class AnalyticsViewSet(viewsets.ViewSet):
         seller = request.user
         solar_products = SolarSolution.objects.filter(seller=seller)
 
-        # Serialize the solar products and their interactions
-        serialized_products = SolarSolutionListSerializer(solar_products, many=True).data
-
         seller_data = {
             'seller_id': seller.id,
             'seller_name': seller.full_name,
-            'products': serialized_products
+            'products': solar_products
         }
         # Use the SellerReportSerializer to serialize the seller data
         serializer = SellerReportSerializer(seller_data)
-
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
