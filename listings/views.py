@@ -232,9 +232,8 @@ class AnalyticsViewSet(viewsets.ViewSet):
         report = []
 
         for seller in sellers:
-            solar_products = SolarSolution.objects.filter(seller=seller.user)
+            solar_products = SolarSolution.objects.prefetch_related('interactions', 'mediafiles').filter(seller=seller.user)
 
-            # Do not serialize here, just collect the data
             seller_data = {
                 'seller_id': seller.id,
                 'seller_name': seller.user.full_name,
@@ -255,7 +254,7 @@ class AnalyticsViewSet(viewsets.ViewSet):
     )
     def seller_analytics(self, request, pk=None):
         seller = request.user
-        solar_products = SolarSolution.objects.filter(seller=seller)
+        solar_products = SolarSolution.objects.prefetch_related('interactions', 'mediafiles').filter(seller=seller)
 
         seller_data = {
             'seller_id': seller.id,
