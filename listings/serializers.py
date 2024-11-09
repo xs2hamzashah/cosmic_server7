@@ -88,6 +88,7 @@ class SolarSolutionApprovalSerializer(ApprovalSerializer):
         fields = ['admin_verified']
 
 class SolarSolutionDetailSerializer(serializers.ModelSerializer):
+    display_name = serializers.SerializerMethodField()
     tags = TagSerializer(many=True)
     components = SolutionComponentSerializer(many=True)
     service = ServiceSerializer()
@@ -99,8 +100,11 @@ class SolarSolutionDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = SolarSolution
         fields = ['id', 'size', 'price', 'solution_type', 'tags', 'completion_time_days',
-                  'payment_schedule', 'components', 'service', 'images', 'approval', 'seller_note']
+                  'payment_schedule', 'components', 'service', 'images', 'approval', 'seller_note',
+                  'display_name']
 
+    def get_display_name(self, obj):
+        return f"{obj.size}kW {obj.solution_type} Solar Solution"
 
 class BuyerInteractionSerializer(serializers.ModelSerializer):
     whatsapp_number = serializers.CharField()
@@ -118,16 +122,20 @@ class SolarSolutionListSerializer(serializers.ModelSerializer):
     buyer_whatsapp_numbers = BuyerInteractionSerializer(many=True, source='interactions')
     images = SolutionMediaSerializer(many=True, source='mediafiles')  # Use the related name for images
     seller_note = serializers.CharField(validators=[MaxLengthValidator(500)], required=False, allow_blank=True)
-
+    display_name = serializers.SerializerMethodField()
 
     class Meta:
         model = SolarSolution
         fields = ['id', 'size', 'price', 'solution_type', 'completion_time_days', 'payment_schedule',
-                  'buyer_interaction_count', 'buyer_whatsapp_numbers', 'images', 'seller_note']
+                  'buyer_interaction_count', 'buyer_whatsapp_numbers', 'images', 'seller_note',
+                  'display_name']
 
     def get_buyer_interaction_count(self, obj):
         # Count the number of interactions related to this SolarSolution
         return obj.interactions.count()
+
+    def get_display_name(self, obj):
+        return f"{obj.size}kW {obj.solution_type} Solar Solution"
 
 
 class SellerReportSerializer(serializers.Serializer):
