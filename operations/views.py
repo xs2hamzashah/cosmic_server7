@@ -70,7 +70,6 @@ class OTPViewSet(viewsets.ViewSet):
         cache.set(f'otp_{phone_number}', otp, timeout=30)  # Cache for 5 minutes (300 seconds)
 
         message_body = f"Your OTP is: {otp}. It is valid for 5 minutes."
-        print(phone_number, ' +923157413555')
 
         try:
             # Send the message via WhatsApp
