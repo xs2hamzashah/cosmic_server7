@@ -1,6 +1,7 @@
 from django.core.validators import MaxLengthValidator
 from rest_framework import serializers
 
+from accounts.models import Company, UserProfile
 from operations.models import Approval
 from operations.serializers import ApprovalSerializer
 from .models import SolarSolution, Tag, SolutionMedia, SolutionComponent, Service, BuyerInteraction
@@ -89,6 +90,7 @@ class SolarSolutionApprovalSerializer(ApprovalSerializer):
 
 class SolarSolutionDetailSerializer(serializers.ModelSerializer):
     display_name = serializers.SerializerMethodField()
+    city = serializers.SerializerMethodField()
     tags = TagSerializer(many=True)
     components = SolutionComponentSerializer(many=True)
     service = ServiceSerializer()
@@ -101,10 +103,24 @@ class SolarSolutionDetailSerializer(serializers.ModelSerializer):
         model = SolarSolution
         fields = ['id', 'size', 'price', 'solution_type', 'tags', 'completion_time_days',
                   'payment_schedule', 'components', 'service', 'images', 'approval', 'seller_note',
-                  'display_name']
+                  'display_name', 'city']
 
     def get_display_name(self, obj):
         return f"{obj.size} kW {obj.solution_type} Solar Solution"
+
+    def get_city(self, obj):
+        seller = obj.seller.userprofile
+        company = seller.comapny
+        return company.city
+
+
+    def get_city(self, obj):
+        seller = getattr(obj.seller, 'userprofile', None)
+        if seller and seller.role == UserProfile.Role.SELLER:
+            company = getattr(seller, 'company', None)
+            return company.city if company and company.city else None
+        return None
+
 
 class BuyerInteractionSerializer(serializers.ModelSerializer):
     whatsapp_number = serializers.CharField()
@@ -123,12 +139,13 @@ class SolarSolutionListSerializer(serializers.ModelSerializer):
     images = SolutionMediaSerializer(many=True, source='mediafiles')  # Use the related name for images
     seller_note = serializers.CharField(validators=[MaxLengthValidator(500)], required=False, allow_blank=True)
     display_name = serializers.SerializerMethodField()
+    city = serializers.SerializerMethodField()
 
     class Meta:
         model = SolarSolution
         fields = ['id', 'size', 'price', 'solution_type', 'completion_time_days', 'payment_schedule',
                   'buyer_interaction_count', 'buyer_whatsapp_numbers', 'images', 'seller_note',
-                  'display_name']
+                  'display_name', 'city']
 
     def get_buyer_interaction_count(self, obj):
         # Count the number of interactions related to this SolarSolution
@@ -136,6 +153,13 @@ class SolarSolutionListSerializer(serializers.ModelSerializer):
 
     def get_display_name(self, obj):
         return f"{obj.size} kW {obj.solution_type} Solar Solution"
+
+    def get_city(self, obj):
+        seller = getattr(obj.seller, 'userprofile', None)
+        if seller and seller.role == UserProfile.Role.SELLER:
+            company = getattr(seller, 'company', None)
+            return company.city if company and company.city else None
+        return None
 
 
 class SellerReportSerializer(serializers.Serializer):

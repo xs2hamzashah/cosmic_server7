@@ -90,7 +90,6 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
             if value in city_map.keys():
                 city_name = city_map[value]
 
-                print(city_name, ' is the city name ')
                 # Use Q to filter by the full city name
                 return queryset.filter(Q(seller__userprofile__company__city__iexact=city_name))
             return queryset
@@ -125,6 +124,7 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
                 Prefetch('mediafiles', queryset=SolutionMedia.objects.filter(is_display_image=True)),
                 'components'
             ).select_related(
+                'seller__userprofile',
                 'seller__userprofile__company',  # Select related to optimize the query for the city filter
                 'service', 'approval'
             ).order_by('id')

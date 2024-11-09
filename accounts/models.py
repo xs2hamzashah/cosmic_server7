@@ -58,14 +58,13 @@ class CustomUser(AbstractUser, TimeStampedModel):
 
 
 class UserProfile(TimeStampedModel):
-    ROLE_CHOICES = (
-        ('admin', 'Admin'),
-        ('seller', 'Seller'),
-        ('buyer', 'Buyer'),
-    )
+    class Role(models.TextChoices):
+        ADMIN = 'admin', 'Admin'
+        SELLER = 'seller', 'Seller'
+        BUYER = 'buyer', 'Buyer'
 
     user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
-    role = models.CharField(max_length=10, choices=ROLE_CHOICES)
+    role = models.CharField(max_length=10, choices=Role.choices)
 
     _user_id_cache = None  # Initialize a private cache variable
 
