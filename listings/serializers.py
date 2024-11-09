@@ -104,7 +104,7 @@ class SolarSolutionDetailSerializer(serializers.ModelSerializer):
                   'display_name']
 
     def get_display_name(self, obj):
-        return f"{obj.size}kW {obj.solution_type} Solar Solution"
+        return f"{obj.size} kW {obj.solution_type} Solar Solution"
 
 class BuyerInteractionSerializer(serializers.ModelSerializer):
     whatsapp_number = serializers.CharField()
@@ -135,7 +135,7 @@ class SolarSolutionListSerializer(serializers.ModelSerializer):
         return obj.interactions.count()
 
     def get_display_name(self, obj):
-        return f"{obj.size}kW {obj.solution_type} Solar Solution"
+        return f"{obj.size} kW {obj.solution_type} Solar Solution"
 
 
 class SellerReportSerializer(serializers.Serializer):
