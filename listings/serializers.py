@@ -158,7 +158,7 @@ class SolarSolutionListSerializer(serializers.ModelSerializer):
         seller = getattr(obj.seller, 'userprofile', None)
         if seller and seller.role == UserProfile.Role.SELLER:
             company = getattr(seller, 'company', None)
-            return company.city if company and company.city else None
+            return getattr(company, 'city', None) if company else None
         return None
 
 

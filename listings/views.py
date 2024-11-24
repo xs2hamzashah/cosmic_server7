@@ -228,16 +228,27 @@ class AnalyticsViewSet(viewsets.ViewSet):
         responses={200: SellerReportSerializer()}
     )
     def admin_analytics(self, request):
-        sellers = UserProfile.objects.filter(role='seller')
+        sellers = UserProfile.objects.select_related('user', 'company').filter(role='seller')
         report = []
 
-        for seller in sellers:
-            solar_products = SolarSolution.objects.prefetch_related('interactions', 'mediafiles').filter(seller=seller.user)
+        solar_solutions = (SolarSolution.objects.select_related('seller', 'seller__userprofile',
+                                                                'seller__userprofile__company').
+                             prefetch_related('interactions', 'mediafiles', 'components'))
 
+        # Create a mapping from seller ID to their respective solar solutions
+        seller_map = {}
+        for solution in solar_solutions:
+            seller_id = solution.seller_id
+            if seller_id not in seller_map:
+                seller_map[seller_id] = []
+            seller_map[seller_id].append(solution)
+
+        report = []
+        for seller in sellers:
             seller_data = {
                 'seller_id': seller.id,
                 'seller_name': seller.user.full_name,
-                'products': solar_products  # Pass the queryset directly
+                'products': seller_map.get(seller.user.id, []),  # Get products from pre-fetched solutions
             }
 
             report.append(seller_data)
@@ -254,12 +265,14 @@ class AnalyticsViewSet(viewsets.ViewSet):
     )
     def seller_analytics(self, request, pk=None):
         seller = request.user
-        solar_products = SolarSolution.objects.prefetch_related('interactions', 'mediafiles').filter(seller=seller)
+        solar_solutions = (SolarSolution.objects.select_related('seller', 'seller__userprofile',
+                                                               'seller__userprofile__company')
+                          .prefetch_related('interactions', 'mediafiles', 'components').filter(seller=seller))
 
         seller_data = {
             'seller_id': seller.id,
             'seller_name': seller.full_name,
-            'products': solar_products
+            'products': solar_solutions
         }
         # Use the SellerReportSerializer to serialize the seller data
         serializer = SellerReportSerializer(seller_data)
