@@ -115,18 +115,23 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
 
 
     def get_queryset(self):
+        solar_solution_qs = SolarSolution.objects.select_related(
+            'seller__userprofile',
+            'seller__userprofile__company'
+        ).prefetch_related(
+            'interactions',
+            Prefetch('mediafiles', queryset=SolutionMedia.objects.filter(is_display_image=True)),
+        )
+
         if self.action == 'list':
-            return SolarSolution.objects.all()
+            return solar_solution_qs
         else:
-            # Prefetch related fields for other actions
-            return SolarSolution.objects.prefetch_related(
+            return solar_solution_qs.select_related(
+                'service',
+                'approval'
+            ).prefetch_related(
                 'tags',
-                Prefetch('mediafiles', queryset=SolutionMedia.objects.filter(is_display_image=True)),
                 'components'
-            ).select_related(
-                'seller__userprofile',
-                'seller__userprofile__company',  # Select related to optimize the query for the city filter
-                'service', 'approval'
             ).order_by('id')
 
     def retrieve(self, request, *args, **kwargs):
@@ -231,8 +236,7 @@ class AnalyticsViewSet(viewsets.ViewSet):
         sellers = UserProfile.objects.select_related('user', 'company').filter(role='seller')
         report = []
 
-        solar_solutions = (SolarSolution.objects.select_related('seller', 'seller__userprofile',
-                                                                'seller__userprofile__company').
+        solar_solutions = (SolarSolution.objects.select_related('seller__userprofile__company').
                              prefetch_related('interactions', 'mediafiles', 'components'))
 
         # Create a mapping from seller ID to their respective solar solutions
