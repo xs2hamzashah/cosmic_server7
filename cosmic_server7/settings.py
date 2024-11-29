@@ -111,13 +111,15 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'cosmic_server7.wsgi.application'
 
-# Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
+# Default Database: PostgreSQL
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'cosmic_server7_db',
+        'USER': 'cosmic_user',
+        'PASSWORD': '7cosmic_ps',
+        'HOST': 'localhost',  # Or the IP of your database server
+        'PORT': '5432',       # Default PostgreSQL port
     }
 }
 

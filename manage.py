@@ -6,7 +6,12 @@ import sys
 
 def main():
     """Run administrative tasks."""
-    os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cosmic_server7.settings')
+    try:
+        # Try loading `settings_local.py` for local development
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cosmic_server7.settings_local')
+    except ImportError:
+        # Fallback to default `settings.py`
+        os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'cosmic_server7.settings')
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:
