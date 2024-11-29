@@ -22,12 +22,11 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-g%z&%fz&fpb6sfw#jv&+q#n(7n=i&cr^go&5#d)of$6)wp5eww'
+SECRET_KEY = config('SECRET_KEY')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', cast=bool)
 
-ALLOWED_HOSTS = ['cosmic-server7.onrender.com', '127.0.0.1', 'localhost']
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', cast=list)
 
 # Application definition
 
@@ -74,10 +73,10 @@ REST_FRAMEWORK = {
 from datetime import timedelta
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=20),  # Set token expiration time
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),  # Set refresh token lifetime
-    'ROTATE_REFRESH_TOKENS': True,  # Allows rotation of refresh tokens
-    'BLACKLIST_AFTER_ROTATION': True,  # Blacklist the old tokens after rotation
+     'ACCESS_TOKEN_LIFETIME': timedelta(hours=config('JWT_ACCESS_TOKEN_LIFETIME', cast=int, default=20)),
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=config('JWT_REFRESH_TOKEN_LIFETIME', cast=int, default=7)),
+    'ROTATE_REFRESH_TOKENS': config('JWT_ROTATE_REFRESH_TOKENS', cast=bool, default=True),
+    'BLACKLIST_AFTER_ROTATION': config('JWT_BLACKLIST_AFTER_ROTATION', cast=bool, default=True),
 }
 
 MIDDLEWARE = [
@@ -118,7 +117,7 @@ WSGI_APPLICATION = 'cosmic_server7.wsgi.application'
 DATABASES = {
     'default': dj_database_url.config(
         # Replace this value with your local database's connection string.
-        default='postgresql://cosmic_server_db_user:GIK1KX4OmiGJ0x5sHYQUdutofm8kjpio@dpg-ct50no5ds78s73bl8bg0-a/cosmic_server_db_0m7n',
+        default=config('DATABASE_URL'),
         conn_max_age=600
     )
 }
@@ -146,7 +145,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = config('TIME_ZONE', default='UTC')
 
 USE_I18N = True
 
