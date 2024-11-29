@@ -116,10 +116,10 @@ WSGI_APPLICATION = 'cosmic_server7.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'cosmic_server7_db',
-        'USER': 'cosmic_user',
-        'PASSWORD': '7cosmic_ps',
-        'HOST': 'localhost',  # Or the IP of your database server
+        'NAME': 'cosmic_server_db',
+        'USER': 'cosmic_server_db_user',
+        'PASSWORD': '4rT22BjBFJcbt8CQ7vy2IbHja2ETBKlK',
+        'HOST': 'dpg-ct2ohnjv2p9s73b068s0-a',  # Or the IP of your database server
         'PORT': '5432',       # Default PostgreSQL port
     }
 }
