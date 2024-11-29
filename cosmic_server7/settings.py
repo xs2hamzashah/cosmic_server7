@@ -11,6 +11,8 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 """
 import os
 from pathlib import Path
+
+import dj_database_url
 from decouple import config
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -114,14 +116,11 @@ WSGI_APPLICATION = 'cosmic_server7.wsgi.application'
 
 # Default Database: PostgreSQL
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'cosmic_server_db_0m7n',
-        'USER': 'cosmic_server_db_user',
-        'PASSWORD': 'GIK1KX4OmiGJ0x5sHYQUdutofm8kjpio',
-        'HOST': 'dpg-ct50no5ds78s73bl8bg0-a',  # Or the IP of your database server
-        'PORT': '5432',       # Default PostgreSQL port
-    }
+    'default': dj_database_url.config(
+        # Replace this value with your local database's connection string.
+        default='postgresql://postgres:postgres@localhost:5432/mysite',
+        conn_max_age=600
+    )
 }
 
 # Password validation
