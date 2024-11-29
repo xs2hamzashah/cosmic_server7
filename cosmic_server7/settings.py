@@ -118,7 +118,7 @@ WSGI_APPLICATION = 'cosmic_server7.wsgi.application'
 DATABASES = {
     'default': dj_database_url.config(
         # Replace this value with your local database's connection string.
-        default='postgresql://postgres:postgres@localhost:5432/mysite',
+        default='postgresql://cosmic_server_db_user:GIK1KX4OmiGJ0x5sHYQUdutofm8kjpio@dpg-ct50no5ds78s73bl8bg0-a/cosmic_server_db_0m7n',
         conn_max_age=600
     )
 }
