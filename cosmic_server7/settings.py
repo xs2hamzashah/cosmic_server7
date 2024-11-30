@@ -53,7 +53,7 @@ INSTALLED_APPS = [
     'listings',
     'core',
     'operations',
-
+    'pricing',
 ]
 
 REST_FRAMEWORK = {

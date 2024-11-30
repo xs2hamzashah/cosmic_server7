@@ -1,7 +1,7 @@
 from django.core.validators import MaxLengthValidator
 from rest_framework import serializers
 
-from accounts.models import Company, UserProfile
+from accounts.models import UserProfile
 from operations.models import Approval
 from operations.serializers import ApprovalSerializer
 from .models import SolarSolution, Tag, SolutionMedia, SolutionComponent, Service, BuyerInteraction

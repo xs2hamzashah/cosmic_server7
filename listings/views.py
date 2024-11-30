@@ -5,6 +5,7 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.parsers import FormParser, MultiPartParser, JSONParser
@@ -142,6 +143,10 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def perform_create(self, serializer):
+        user_profile = self.request.user.userprofile
+        existing_pass = user_profile.subscriptions.exists()
+        if not existing_pass:
+            raise ValidationError("Please purchase a plan first before creating a solar solution.")
 
         solar_solution = serializer.save(seller=self.request.user)
         Approval.objects.create(solution=solar_solution)
