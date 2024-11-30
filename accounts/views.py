@@ -3,9 +3,10 @@ from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.urls import reverse
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from cosmic_server7 import settings
@@ -35,11 +36,26 @@ class UserProfileViewSet(viewsets.ModelViewSet):
     filterset_class = UserProfileFilter  # Use the custom filter class
 
     def get_permissions(self):
-        if self.action in ['list', 'create']:
+        if self.action in ['create']:
             return [AllowAny()]
-        elif self.action in ['update', 'partial_update', 'retrieve', 'destroy']:
-            return [IsAdmin()]
-        return [AllowAny()]
+        elif self.action in ['update', 'partial_update', 'retrieve']:
+            return [IsAuthenticated()]
+        elif self.action == 'my_profile':
+            return [IsAuthenticated()]
+        return [IsAdmin()]
+
+    def perform_update(self, serializer):
+        """ Custom update logic here """
+        # Handle the nested user fields separately
+        user_data = serializer.validated_data.pop('user', None)  # Remove user data from validated_data
+        if user_data:
+            for attr, value in user_data.items():
+                setattr(serializer.instance.user, attr, value)
+            serializer.instance.user.save()
+
+        # Perform the update for UserProfile itself
+        serializer.save()  # Save the UserProfile instance
+        return serializer.instance  # Return the updated instance
 
     def destroy(self, request, *args, **kwargs):
         # Get the UserProfile instance
@@ -53,6 +69,16 @@ class UserProfileViewSet(viewsets.ModelViewSet):
         user.delete()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @swagger_auto_schema(operation_description="User profile detail", responses={200: UserProfileSerializer()})
+    @action(detail=False, methods=['get'])
+    def my_profile(self, request):
+        try:
+            user_profile = UserProfile.objects.select_related('user').get(user=request.user)
+            serializer = self.get_serializer(user_profile)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except UserProfile.DoesNotExist:
+            return Response({'detail': 'Profile not found.'}, status=status.HTTP_404_NOT_FOUND)
 
     @action(detail=False, methods=['post'], serializer_class=ForgotPasswordSerializer)
     def forgot_password(self, request):

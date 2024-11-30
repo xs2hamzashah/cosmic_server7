@@ -6,22 +6,29 @@ from .models import UserProfile, CustomUser, Company
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True)
     confirm_password = serializers.CharField(write_only=True, required=True)
-    phone_number = serializers.CharField(required=True)
+    phone_number = serializers.DecimalField(max_digits=15, decimal_places=0, required=True)
 
     class Meta:
         model = CustomUser
         fields = ['email', 'full_name', 'phone_number', 'username', 'password', 'confirm_password', 'phone_number']
 
     def validate(self, data):
-        if data['password'] != data['confirm_password']:
-            raise serializers.ValidationError("Passwords do not match")
+        # Restrict updating the email field
+        if 'email' or 'username' in data:
+            raise serializers.ValidationError("Updating the email or username is not allowed.")
+
+        # Check for password and confirm_password only if they are being updated
+        if 'password' in data or 'confirm_password' in data:
+            if data.get('password') != data.get('confirm_password'):
+                raise serializers.ValidationError("Passwords do not match.")
+
         return data
 
 
 class CompanySerializer(serializers.ModelSerializer):
     class Meta:
         model = Company
-        fields = ['name', 'phone_number', 'description', 'city']
+        fields = ['id', 'name', 'phone_number', 'description', 'city']
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -30,7 +37,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserProfile
-        fields = ['user', 'role', 'company']
+        fields = ['id', 'user', 'role', 'company']
 
     def create(self, validated_data):
         user_data = validated_data.pop('user')
