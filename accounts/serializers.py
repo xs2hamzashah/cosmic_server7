@@ -14,9 +14,9 @@ class UserSerializer(serializers.ModelSerializer):
 
     def validate(self, data):
         # Restrict updating the email field
-        if 'email' or 'username' in data:
-            raise serializers.ValidationError("Updating the email or username is not allowed.")
-
+        if self.instance:  # self.instance will be set only when updating, not during creation
+            if 'email' in data or 'username' in data:
+                raise serializers.ValidationError("Updating the email or username is not allowed.")
         # Check for password and confirm_password only if they are being updated
         if 'password' in data or 'confirm_password' in data:
             if data.get('password') != data.get('confirm_password'):
