@@ -42,7 +42,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
             return [IsAuthenticated()]
         elif self.action == 'my_profile':
             return [IsAuthenticated()]
-        return [IsAdmin()]
+        return [AllowAny()]
 
     def perform_update(self, serializer):
         """ Custom update logic here """
