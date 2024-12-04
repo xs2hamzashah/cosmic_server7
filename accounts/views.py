@@ -94,10 +94,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
             except User.DoesNotExist:
                 return Response({"detail": "User with this email does not exist."}, status=status.HTTP_404_NOT_FOUND)
 
-            # Generate a password reset token or link
-            reset_url = request.build_absolute_uri(
-                reverse('userprofile-reset-password', kwargs={'pk': user.userprofile_id})
-            )
+            reset_url = f"{settings.FRONTEND_BASE_URL}reset-password/{user.userprofile_id}/"
 
             # Send an email with the reset link
             send_mail(

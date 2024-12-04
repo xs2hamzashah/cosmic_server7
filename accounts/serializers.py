@@ -6,7 +6,6 @@ from .models import UserProfile, CustomUser, Company
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True)
     confirm_password = serializers.CharField(write_only=True, required=True)
-    phone_number = serializers.DecimalField(max_digits=15, decimal_places=0, required=True)
 
     class Meta:
         model = CustomUser
