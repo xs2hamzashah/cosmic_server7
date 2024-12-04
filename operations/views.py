@@ -75,6 +75,7 @@ class OTPViewSet(viewsets.ViewSet):
             # Send the message via WhatsApp
             message = client.messages.create(
                 body=message_body,
+                content_sid=settings.TWILIO_CONTENT_SID,
                 from_=settings.TWILIO_WHATSAPP_NUMBER,
                 # from_='whatsapp:+14155238886',
                 to=f'whatsapp:{phone_number}'
