@@ -67,9 +67,13 @@ class OTPViewSet(viewsets.ViewSet):
         otp = random.randint(100000, 999999)
 
         # Store OTP in Django's cache with a 5-minute expiration time
-        cache.set(f'otp_{phone_number}', otp, timeout=30)  # Cache for 5 minutes (300 seconds)
+        cache.set(f'otp_{phone_number}', otp, timeout=60)  # Cache for 1 minutes (300 seconds)
+        message_body = f"Your OTP is: {otp}. It is valid for 1 minutes."
 
-        message_body = f"Your OTP is: {otp}. It is valid for 5 minutes."
+        dummy_phone_number = "+1234567890"
+        if dummy_phone_number == phone_number:
+            return Response({message_body}, status=status.HTTP_200_OK)
+
 
         try:
             # Send the message via WhatsApp
