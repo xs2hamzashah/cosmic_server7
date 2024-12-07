@@ -145,8 +145,9 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         user_profile = self.request.user.userprofile
         existing_pass = user_profile.subscriptions.exists()
-        if not existing_pass:
-            raise ValidationError("Please purchase a plan first before creating a solar solution.")
+        # TODO: will come to this after we implement the payment
+        # if not existing_pass:
+        #     raise ValidationError("Please purchase a plan first before creating a solar solution.")
 
         solar_solution = serializer.save(seller=self.request.user)
         Approval.objects.create(solution=solar_solution)
