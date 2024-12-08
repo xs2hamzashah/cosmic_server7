@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'core',
     'operations',
     'pricing',
+    'pricelist'
 ]
 
 REST_FRAMEWORK = {
