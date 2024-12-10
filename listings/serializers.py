@@ -193,6 +193,7 @@ class BuyerAnalyticsSerializer(serializers.Serializer):
     total = serializers.IntegerField()
     buyer_by_city_count = BuyerCityCountSerializer(many=True)
 
+
 class SolutionAnalyticsSerializer(serializers.Serializer):
     total = serializers.IntegerField()
     approved = serializers.IntegerField()

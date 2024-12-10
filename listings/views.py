@@ -241,26 +241,44 @@ class AnalyticsViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['get'], permission_classes=[IsAdmin])
     @swagger_auto_schema(
         operation_description="Simplified Admin Analytics",
+        manual_parameters=[
+            openapi.Parameter(
+                "city",
+                openapi.IN_QUERY,
+                description="Filter analytics by city (e.g., Islamabad, Karachi, Lahore)",
+                type=openapi.TYPE_STRING
+            )
+        ],
         responses={200: AdminAnalyticsSerializer()}
     )
     def admin_analytics(self, request):
+        city = request.query_params.get('city')
+
+        seller_filter = Q(role='seller')
+        solution_filter = Q()
+        buyer_filter = Q()
+        if city:
+            seller_filter &= Q(company__city__exact=city)
+            solution_filter &= Q(seller__company__city__exact=city)
+            buyer_filter &= Q(solar_solution__seller__company__city__exact=city)
+
         # Seller counts
-        total_sellers = UserProfile.objects.filter(role='seller').count()
+        total_sellers = UserProfile.objects.filter(seller_filter).count()
         sellers_by_city = (
-            UserProfile.objects.filter(role='seller')
+            UserProfile.objects.filter(seller_filter)
             .values('company__city')
             .annotate(city_sellers=Count('id'))
         )
 
         # Solar Solution counts
-        total_solutions = SolarSolution.objects.count()
-        approved_solutions = SolarSolution.objects.filter(approval__admin_verified=True).count()
-        unapproved_solutions = SolarSolution.objects.filter(approval__admin_verified=False).count()
+        total_solutions = SolarSolution.objects.filter(solution_filter).count()
+        approved_solutions = SolarSolution.objects.filter(solution_filter, approval__admin_verified=True).count()
+        unapproved_solutions = SolarSolution.objects.filter(solution_filter, approval__admin_verified=False).count()
 
         # Buyer counts
-        total_buyers = BuyerInteraction.objects.count()
+        total_buyers = BuyerInteraction.objects.filter(buyer_filter).count()
         buyers_by_city = (
-            BuyerInteraction.objects.values(city=F('solar_solution__seller__company__city'))
+            BuyerInteraction.objects.filter(buyer_filter).values(city=F('solar_solution__seller__company__city'))
             .annotate(city_buyers=Count('id'))
         )
 
