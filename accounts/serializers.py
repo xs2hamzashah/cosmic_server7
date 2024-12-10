@@ -1,6 +1,9 @@
+from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from .models import UserProfile, CustomUser, Company
+from django.core.exceptions import ValidationError as DjangoValidationError
+from rest_framework.exceptions import ValidationError as DRFValidationError
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -17,9 +20,15 @@ class UserSerializer(serializers.ModelSerializer):
             if 'email' in data or 'username' in data:
                 raise serializers.ValidationError("Updating the email or username is not allowed.")
         # Check for password and confirm_password only if they are being updated
+        password = data.get('password')
+        confirm_password = data.get('confirm_password')
         if 'password' in data or 'confirm_password' in data:
-            if data.get('password') != data.get('confirm_password'):
+            if password != confirm_password:
                 raise serializers.ValidationError("Passwords do not match.")
+            try:
+                validate_password(password)
+            except DjangoValidationError as e:
+                raise DRFValidationError({"password": e.messages})
 
         return data
 
