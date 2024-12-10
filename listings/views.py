@@ -16,11 +16,11 @@ from rest_framework import status
 from accounts.models import UserProfile
 from accounts.permissions import IsAdmin, IsSeller, IsAdminOrSeller
 from operations.models import Approval
-from .models import SolarSolution, Tag, SolutionMedia, SolutionComponent, Service
+from .models import SolarSolution, Tag, SolutionMedia, SolutionComponent, Service, BuyerInteraction
 from .serializers import SolarSolutionListSerializer, SolarSolutionCreateSerializer, SolutionMediaSerializer, \
     SellerReportSerializer, SolarSolutionDetailSerializer, TagSerializer, SolarSolutionUpdateSerializer, \
-    SolutionComponentSerializer
-from django.db.models import Prefetch, Q
+    SolutionComponentSerializer, AdminAnalyticsSerializer
+from django.db.models import Prefetch, Q, Count, F
 
 
 class SolarSolutionViewSet(viewsets.ModelViewSet):
@@ -66,7 +66,7 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
             ('above_3M', 'Above 3M'),
         )
 
-        city = filters.ChoiceFilter(choices=CITY_CHOICES, field_name='seller__userprofile__company__city',
+        city = filters.ChoiceFilter(choices=CITY_CHOICES, field_name='seller__company__city',
                                     method='filter_by_city')
         size = django_filters.NumberFilter(field_name='size', method='filter_by_size')
         price = filters.ChoiceFilter(choices=PRICE_RANGES, method='filter_by_price')
@@ -85,7 +85,7 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
                 city_name = city_map[value]
 
                 # Use Q to filter by the full city name
-                return queryset.filter(Q(seller__userprofile__company__city__iexact=city_name))
+                return queryset.filter(Q(seller__company__city__iexact=city_name))
             return queryset
 
         def filter_by_price(self, queryset, name, value):
@@ -120,9 +120,10 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
 
 
     def get_queryset(self):
-        solar_solution_qs = SolarSolution.objects.filter(approval__is_approved=True).select_related(
-            'seller__userprofile',
-            'seller__userprofile__company'
+        solar_solution_qs = SolarSolution.objects.select_related(
+            'seller', 'service',
+            'seller__user',
+            'seller__company'
         ).prefetch_related(
             'interactions',
             Prefetch('mediafiles', queryset=SolutionMedia.objects.filter(is_display_image=True)),
@@ -153,7 +154,7 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
         # if not existing_pass:
         #     raise ValidationError("Please purchase a plan first before creating a solar solution.")
 
-        solar_solution = serializer.save(seller=self.request.user)
+        solar_solution = serializer.save(seller=user_profile)
         Approval.objects.create(solution=solar_solution)
 
     def perform_update(self, serializer):
@@ -239,38 +240,50 @@ class AnalyticsViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'], permission_classes=[IsAdmin])
     @swagger_auto_schema(
-        operation_description="Seller Analytics",
-        responses={200: SellerReportSerializer()}
+        operation_description="Simplified Admin Analytics",
+        responses={200: AdminAnalyticsSerializer()}
     )
     def admin_analytics(self, request):
-        sellers = UserProfile.objects.select_related('user', 'company').filter(role='seller')
-        report = []
+        # Seller counts
+        total_sellers = UserProfile.objects.filter(role='seller').count()
+        sellers_by_city = (
+            UserProfile.objects.filter(role='seller')
+            .values('company__city')
+            .annotate(city_sellers=Count('id'))
+        )
 
-        solar_solutions = (SolarSolution.objects.select_related('seller__userprofile__company').
-                             prefetch_related('interactions', 'mediafiles', 'components'))
+        # Solar Solution counts
+        total_solutions = SolarSolution.objects.count()
+        approved_solutions = SolarSolution.objects.filter(approval__admin_verified=True).count()
+        unapproved_solutions = SolarSolution.objects.filter(approval__admin_verified=False).count()
 
-        # Create a mapping from seller ID to their respective solar solutions
-        seller_map = {}
-        for solution in solar_solutions:
-            seller_id = solution.seller_id
-            if seller_id not in seller_map:
-                seller_map[seller_id] = []
-            seller_map[seller_id].append(solution)
+        # Buyer counts
+        total_buyers = BuyerInteraction.objects.count()
+        buyers_by_city = (
+            BuyerInteraction.objects.values(city=F('solar_solution__seller__company__city'))
+            .annotate(city_buyers=Count('id'))
+        )
 
-        report = []
-        for seller in sellers:
-            seller_data = {
-                'seller_id': seller.id,
-                'seller_name': seller.user.full_name,
-                'products': seller_map.get(seller.user.id, []),  # Get products from pre-fetched solutions
+        # Prepare response data
+        response_data = {
+            "sellers": {
+                "total": total_sellers,
+                "seller_by_city_count": sellers_by_city
+            },
+            "solar_solutions": {
+                "total": total_solutions,
+                "approved": approved_solutions,
+                "unapproved": unapproved_solutions,
+            },
+            "buyers": {
+                "total": total_buyers,
+                "buyer_by_city_count": buyers_by_city
             }
+        }
 
-            report.append(seller_data)
-
-        # Use the SellerReportSerializer to serialize the report data
-        serialized_report = SellerReportSerializer(report, many=True)
-
-        return Response({'report': serialized_report.data}, status=status.HTTP_200_OK)
+        # Serialize and return response
+        serializer = AdminAnalyticsSerializer(response_data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], permission_classes=[IsAdminOrSeller])
     @swagger_auto_schema(

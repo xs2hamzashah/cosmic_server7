@@ -95,7 +95,7 @@ class SolarSolution(TimeStampedModel):
                                         default=PaymentSchedule.FLEXIBLE, help_text="Payment schedule for the solution")
 
     # New seller field added
-    seller = models.ForeignKey('accounts.CustomUser', null=True,
+    seller = models.ForeignKey('accounts.UserProfile', null=True,
                                on_delete=models.CASCADE,
                                related_name='solar_solutions')
 
