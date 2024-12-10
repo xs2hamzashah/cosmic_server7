@@ -6,7 +6,7 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
-from rest_framework.filters import SearchFilter
+from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.parsers import FormParser, MultiPartParser, JSONParser
 from rest_framework.permissions import AllowAny
@@ -72,6 +72,7 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
         price = filters.ChoiceFilter(choices=PRICE_RANGES, method='filter_by_price')
         is_seller_page = filters.BooleanFilter(field_name='seller_page', method='filter_by_is_seller_page',
                                             label='Show only seller\'s listing')
+        approved = filters.BooleanFilter(field_name='approved', method='filter_by_approved')
 
         class Meta:
             model = SolarSolution
@@ -109,12 +110,17 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
                 return queryset.filter(seller=self.request.user.userprofile)
             return queryset
 
-    filter_backends = [DjangoFilterBackend]
+        def filter_by_approved(self, queryset, name, value):
+            if value:
+                return queryset.filter(approval__is_approved=value)
+            return queryset
+
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = SolarSolutionFilter
 
 
     def get_queryset(self):
-        solar_solution_qs = SolarSolution.objects.select_related(
+        solar_solution_qs = SolarSolution.objects.filter(approval__is_approved=True).select_related(
             'seller__userprofile',
             'seller__userprofile__company'
         ).prefetch_related(
