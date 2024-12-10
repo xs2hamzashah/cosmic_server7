@@ -59,14 +59,6 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
             ('LHR', 'Lahore'),
         )
 
-        # SYSTEM_SIZE_CHOICES defines the available options for system sizes.
-        # These integers represent the size in kilowatts (KW)
-        SYSTEM_SIZE_CHOICES = (
-            (5, '5'),
-            (10, '10'),
-            (15, '15'),
-            (20, '20'),
-        )
         PRICE_RANGES = (
             ('below_1M', 'Below 1M'),
             ('below_2M', 'Below 2M'),
@@ -76,7 +68,7 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
 
         city = filters.ChoiceFilter(choices=CITY_CHOICES, field_name='seller__userprofile__company__city',
                                     method='filter_by_city')
-        size = filters.ChoiceFilter(choices=SYSTEM_SIZE_CHOICES, field_name='size')
+        size = django_filters.NumberFilter(field_name='size', method='filter_by_size')
         price = filters.ChoiceFilter(choices=PRICE_RANGES, method='filter_by_price')
         is_seller_page = filters.BooleanFilter(field_name='seller_page', method='filter_by_is_seller_page',
                                             label='Show only seller\'s listing')
@@ -106,10 +98,16 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
                 return queryset.filter(price__gt=3000000)
             return queryset
 
+        def filter_by_size(self, queryset, name, value):
+            if value is not None and 0 < value <= 200:
+                return queryset.filter(size=value)
+            return queryset
+
         def filter_by_is_seller_page(self, queryset, name, value):
-            if value and self.request.user.is_authenticated and self.request.user.userprofile.role == 'seller':
+            if (value and self.request.user.is_authenticated and
+                    self.request.user.userprofile.role == UserProfile.role.SELLER):
                 return queryset.filter(seller=self.request.user.userprofile)
-            return queryset  # Return the original queryset if conditions are not met
+            return queryset
 
     filter_backends = [DjangoFilterBackend]
     filterset_class = SolarSolutionFilter
