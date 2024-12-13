@@ -172,3 +172,35 @@ class SellerReportSerializer(serializers.Serializer):
     seller_id = serializers.IntegerField()
     seller_name = serializers.CharField()
     products = SolarSolutionListSerializer(many=True)
+
+
+class SellerCityCountSerializer(serializers.Serializer):
+    city = serializers.CharField(source='company__city')
+    count = serializers.IntegerField(source='city_sellers', required=False)
+
+
+class BuyerCityCountSerializer(serializers.Serializer):
+    city = serializers.CharField(source='company__city')
+    count = serializers.IntegerField(source='city_buyers', required=False)
+
+
+class SellerAnalyticsSerializer(serializers.Serializer):
+    total = serializers.IntegerField()
+    seller_by_city_count = SellerCityCountSerializer(many=True)
+
+
+class BuyerAnalyticsSerializer(serializers.Serializer):
+    total = serializers.IntegerField()
+    buyer_by_city_count = BuyerCityCountSerializer(many=True)
+
+
+class SolutionAnalyticsSerializer(serializers.Serializer):
+    total = serializers.IntegerField()
+    approved = serializers.IntegerField()
+    unapproved = serializers.IntegerField()
+
+
+class AdminAnalyticsSerializer(serializers.Serializer):
+    sellers = SellerAnalyticsSerializer()
+    solar_solutions = SolutionAnalyticsSerializer()
+    buyers = BuyerAnalyticsSerializer()

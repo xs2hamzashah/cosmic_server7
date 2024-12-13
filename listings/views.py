@@ -6,7 +6,7 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
-from rest_framework.filters import SearchFilter
+from rest_framework.filters import SearchFilter, OrderingFilter
 from rest_framework.generics import ListCreateAPIView
 from rest_framework.parsers import FormParser, MultiPartParser, JSONParser
 from rest_framework.permissions import AllowAny
@@ -16,11 +16,11 @@ from rest_framework import status
 from accounts.models import UserProfile
 from accounts.permissions import IsAdmin, IsSeller, IsAdminOrSeller
 from operations.models import Approval
-from .models import SolarSolution, Tag, SolutionMedia, SolutionComponent, Service
+from .models import SolarSolution, Tag, SolutionMedia, SolutionComponent, Service, BuyerInteraction
 from .serializers import SolarSolutionListSerializer, SolarSolutionCreateSerializer, SolutionMediaSerializer, \
     SellerReportSerializer, SolarSolutionDetailSerializer, TagSerializer, SolarSolutionUpdateSerializer, \
-    SolutionComponentSerializer
-from django.db.models import Prefetch, Q
+    SolutionComponentSerializer, AdminAnalyticsSerializer
+from django.db.models import Prefetch, Q, Count, F
 
 
 class SolarSolutionViewSet(viewsets.ModelViewSet):
@@ -59,14 +59,6 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
             ('LHR', 'Lahore'),
         )
 
-        # SYSTEM_SIZE_CHOICES defines the available options for system sizes.
-        # These integers represent the size in kilowatts (KW)
-        SYSTEM_SIZE_CHOICES = (
-            (5, '5'),
-            (10, '10'),
-            (15, '15'),
-            (20, '20'),
-        )
         PRICE_RANGES = (
             ('below_1M', 'Below 1M'),
             ('below_2M', 'Below 2M'),
@@ -74,12 +66,13 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
             ('above_3M', 'Above 3M'),
         )
 
-        city = filters.ChoiceFilter(choices=CITY_CHOICES, field_name='seller__userprofile__company__city',
+        city = filters.ChoiceFilter(choices=CITY_CHOICES, field_name='seller__company__city',
                                     method='filter_by_city')
-        size = filters.ChoiceFilter(choices=SYSTEM_SIZE_CHOICES, field_name='size')
+        size = django_filters.NumberFilter(field_name='size', method='filter_by_size')
         price = filters.ChoiceFilter(choices=PRICE_RANGES, method='filter_by_price')
         is_seller_page = filters.BooleanFilter(field_name='seller_page', method='filter_by_is_seller_page',
                                             label='Show only seller\'s listing')
+        approved = filters.BooleanFilter(field_name='approved', method='filter_by_approved')
 
         class Meta:
             model = SolarSolution
@@ -92,7 +85,7 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
                 city_name = city_map[value]
 
                 # Use Q to filter by the full city name
-                return queryset.filter(Q(seller__userprofile__company__city__iexact=city_name))
+                return queryset.filter(Q(seller__company__city__iexact=city_name))
             return queryset
 
         def filter_by_price(self, queryset, name, value):
@@ -106,19 +99,31 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
                 return queryset.filter(price__gt=3000000)
             return queryset
 
-        def filter_by_is_seller_page(self, queryset, name, value):
-            if value and self.request.user.is_authenticated and self.request.user.userprofile.role == 'seller':
-                return queryset.filter(seller=self.request.user.userprofile)
-            return queryset  # Return the original queryset if conditions are not met
+        def filter_by_size(self, queryset, name, value):
+            if value is not None and 0 < value <= 200:
+                return queryset.filter(size=value)
+            return queryset
 
-    filter_backends = [DjangoFilterBackend]
+        def filter_by_is_seller_page(self, queryset, name, value):
+            if (value and self.request.user.is_authenticated and
+                    self.request.user.userprofile.role == UserProfile.role.SELLER):
+                return queryset.filter(seller=self.request.user.userprofile)
+            return queryset
+
+        def filter_by_approved(self, queryset, name, value):
+            if value:
+                return queryset.filter(approval__is_approved=value)
+            return queryset
+
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
     filterset_class = SolarSolutionFilter
 
 
     def get_queryset(self):
         solar_solution_qs = SolarSolution.objects.select_related(
-            'seller__userprofile',
-            'seller__userprofile__company'
+            'seller', 'service',
+            'seller__user',
+            'seller__company'
         ).prefetch_related(
             'interactions',
             Prefetch('mediafiles', queryset=SolutionMedia.objects.filter(is_display_image=True)),
@@ -149,7 +154,7 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
         # if not existing_pass:
         #     raise ValidationError("Please purchase a plan first before creating a solar solution.")
 
-        solar_solution = serializer.save(seller=self.request.user)
+        solar_solution = serializer.save(seller=user_profile)
         Approval.objects.create(solution=solar_solution)
 
     def perform_update(self, serializer):
@@ -235,38 +240,68 @@ class AnalyticsViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'], permission_classes=[IsAdmin])
     @swagger_auto_schema(
-        operation_description="Seller Analytics",
-        responses={200: SellerReportSerializer()}
+        operation_description="Simplified Admin Analytics",
+        manual_parameters=[
+            openapi.Parameter(
+                "city",
+                openapi.IN_QUERY,
+                description="Filter analytics by city (e.g., Islamabad, Karachi, Lahore)",
+                type=openapi.TYPE_STRING
+            )
+        ],
+        responses={200: AdminAnalyticsSerializer()}
     )
     def admin_analytics(self, request):
-        sellers = UserProfile.objects.select_related('user', 'company').filter(role='seller')
-        report = []
+        city = request.query_params.get('city')
 
-        solar_solutions = (SolarSolution.objects.select_related('seller__userprofile__company').
-                             prefetch_related('interactions', 'mediafiles', 'components'))
+        seller_filter = Q(role='seller')
+        solution_filter = Q()
+        buyer_filter = Q()
+        if city:
+            seller_filter &= Q(company__city__exact=city)
+            solution_filter &= Q(seller__company__city__exact=city)
+            buyer_filter &= Q(solar_solution__seller__company__city__exact=city)
 
-        # Create a mapping from seller ID to their respective solar solutions
-        seller_map = {}
-        for solution in solar_solutions:
-            seller_id = solution.seller_id
-            if seller_id not in seller_map:
-                seller_map[seller_id] = []
-            seller_map[seller_id].append(solution)
+        # Seller counts
+        total_sellers = UserProfile.objects.filter(seller_filter).count()
+        sellers_by_city = (
+            UserProfile.objects.filter(seller_filter)
+            .values('company__city')
+            .annotate(city_sellers=Count('id'))
+        )
 
-        report = []
-        for seller in sellers:
-            seller_data = {
-                'seller_id': seller.id,
-                'seller_name': seller.user.full_name,
-                'products': seller_map.get(seller.user.id, []),  # Get products from pre-fetched solutions
+        # Solar Solution counts
+        total_solutions = SolarSolution.objects.filter(solution_filter).count()
+        approved_solutions = SolarSolution.objects.filter(solution_filter, approval__admin_verified=True).count()
+        unapproved_solutions = SolarSolution.objects.filter(solution_filter, approval__admin_verified=False).count()
+
+        # Buyer counts
+        total_buyers = BuyerInteraction.objects.filter(buyer_filter).count()
+        buyers_by_city = (
+            BuyerInteraction.objects.filter(buyer_filter).values(city=F('solar_solution__seller__company__city'))
+            .annotate(city_buyers=Count('id'))
+        )
+
+        # Prepare response data
+        response_data = {
+            "sellers": {
+                "total": total_sellers,
+                "seller_by_city_count": sellers_by_city
+            },
+            "solar_solutions": {
+                "total": total_solutions,
+                "approved": approved_solutions,
+                "unapproved": unapproved_solutions,
+            },
+            "buyers": {
+                "total": total_buyers,
+                "buyer_by_city_count": buyers_by_city
             }
+        }
 
-            report.append(seller_data)
-
-        # Use the SellerReportSerializer to serialize the report data
-        serialized_report = SellerReportSerializer(report, many=True)
-
-        return Response({'report': serialized_report.data}, status=status.HTTP_200_OK)
+        # Serialize and return response
+        serializer = AdminAnalyticsSerializer(response_data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], permission_classes=[IsAdminOrSeller])
     @swagger_auto_schema(
