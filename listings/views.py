@@ -309,10 +309,11 @@ class AnalyticsViewSet(viewsets.ViewSet):
         responses={200: SellerReportSerializer()}
     )
     def seller_analytics(self, request, pk=None):
-        seller = request.user.userprofile
+        seller = request.user
+        seller_profile = seller.userprofile
         solar_solutions = (SolarSolution.objects.select_related('seller', 'seller__userprofile',
                                                                'seller__userprofile__company')
-                          .prefetch_related('interactions', 'mediafiles', 'components').filter(seller=seller))
+                          .prefetch_related('interactions', 'mediafiles', 'components').filter(seller=seller_profile))
 
         seller_data = {
             'seller_id': seller.id,
