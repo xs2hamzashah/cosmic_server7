@@ -6,6 +6,7 @@ from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
 
+from accounts.views import CustomTokenObtainPairView
 from cosmic_server7 import settings
 
 schema_view = get_schema_view(
@@ -22,7 +23,7 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    path('api/auth/login/', TokenObtainPairView.as_view(), name='login'),
+    path('api/auth/login/', CustomTokenObtainPairView.as_view(), name='login'),
     path('api/auth/refresh-token/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/auth/verify-token/', TokenVerifyView.as_view(), name='token_verify'),
 

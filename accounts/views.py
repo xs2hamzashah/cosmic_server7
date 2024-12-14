@@ -8,11 +8,13 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from cosmic_server7 import settings
 from .models import UserProfile
 from .permissions import IsAdmin
-from .serializers import UserProfileSerializer, ForgotPasswordSerializer, PasswordResetSerializer
+from .serializers import UserProfileSerializer, ForgotPasswordSerializer, PasswordResetSerializer, \
+    CustomTokenObtainPairSerializer
 
 
 class UserProfileViewSet(viewsets.ModelViewSet):
@@ -123,3 +125,7 @@ class UserProfileViewSet(viewsets.ModelViewSet):
             return Response({'detail': 'Password has been reset successfully.'}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    serializer_class = CustomTokenObtainPairSerializer

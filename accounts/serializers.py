@@ -1,9 +1,10 @@
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import UserProfile, CustomUser, Company
 from django.core.exceptions import ValidationError as DjangoValidationError
-from rest_framework.exceptions import ValidationError as DRFValidationError
+from rest_framework.exceptions import ValidationError as DRFValidationError, ValidationError
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -78,3 +79,19 @@ class PasswordResetSerializer(serializers.Serializer):
     def validate_new_password(self, value):
         # Add any password validation logic if needed
         return value
+
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        data = super().validate(attrs)
+        role = self.context['request'].data.get('role')
+
+        if not role:
+            raise ValidationError("Please provide the role.")
+        if role not in UserProfile.Role:
+            raise ValidationError(f"Invalid role. Available roles: {', '.join(UserProfile.Role)}")
+        if self.user.userprofile.role != role:
+            raise ValidationError("The role does not match the user's account type.")
+
+        data['role'] = self.user.userprofile.role
+        return data
