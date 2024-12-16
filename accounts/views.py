@@ -1,3 +1,5 @@
+import csv
+
 import django_filters
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
@@ -8,10 +10,11 @@ from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from cosmic_server7 import settings
-from .models import UserProfile
+from .models import UserProfile, Company
 from .permissions import IsAdmin
 from .serializers import UserProfileSerializer, ForgotPasswordSerializer, PasswordResetSerializer, \
     CustomTokenObtainPairSerializer
@@ -129,3 +132,27 @@ class UserProfileViewSet(viewsets.ModelViewSet):
 
 class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
+
+
+class CompanyListView(APIView):
+    permission_classes = [AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        csv_file_path = 'company_names.csv'
+
+        predefined_company_names = []
+        try:
+            with open(csv_file_path, mode='r', encoding='utf-8') as file:
+                reader = csv.reader(file)
+                next(reader)  # Skip the header row if it exists
+                predefined_company_names = [row[0] for row in reader]
+        except FileNotFoundError:
+            return Response({"error": "CSV file not found"}, status=404)
+
+        existing_company_names = set(Company.objects.values_list('name', flat=True))
+
+        available_company_names = [
+            name for name in predefined_company_names if name not in existing_company_names
+        ]
+
+        return Response({"company_names": available_company_names})
