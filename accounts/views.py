@@ -5,9 +5,11 @@ from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
 from django.urls import reverse
 from django_filters.rest_framework import DjangoFilterBackend
+from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
+from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -134,10 +136,26 @@ class CustomTokenObtainPairView(TokenObtainPairView):
     serializer_class = CustomTokenObtainPairSerializer
 
 
-class CompanyListView(APIView):
+class CompanyNamesListView(APIView):
     permission_classes = [AllowAny]
 
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter(
+                'search',
+                openapi.IN_QUERY,
+                description="Search term to filter company names.",
+                type=openapi.TYPE_STRING,
+                required=True
+            )
+        ]
+    )
     def get(self, request, *args, **kwargs):
+        # Check if 'search' query parameter is provided
+        search_query = request.query_params.get('search', None)
+        if not search_query:
+            raise ValidationError({"error": "'search' query parameter is required"})
+
         csv_file_path = 'company_names.csv'
 
         predefined_company_names = []
@@ -151,8 +169,14 @@ class CompanyListView(APIView):
 
         existing_company_names = set(Company.objects.values_list('name', flat=True))
 
+        # Exclude existing companies from the predefined list
         available_company_names = [
             name for name in predefined_company_names if name not in existing_company_names
+        ]
+
+        # Apply search filter based on 'search' query parameter
+        available_company_names = [
+            name for name in available_company_names if search_query.lower() in name.lower()
         ]
 
         return Response({"company_names": available_company_names})
