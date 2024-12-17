@@ -76,7 +76,7 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
 
         class Meta:
             model = SolarSolution
-            fields = ['size', 'price', 'city', 'is_seller_page']
+            fields = ['size', 'price', 'city', 'is_seller_page', 'seller']
 
         def filter_by_city(self, queryset, name, value):
             value = value.upper()
