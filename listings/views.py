@@ -46,7 +46,7 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
         """
         Instantiates the appropriate permission instances based on action.
         """
-        if self.action in ['create', 'update', 'partial_update']:
+        if self.action in ['create', 'update', 'partial_update', 'upload_media']:
             return [IsAdminOrSeller()]
         elif self.action in ['list', 'retrieve']:
             return [AllowAny()]
@@ -209,17 +209,19 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    @action(detail=True, methods=['post'], parser_classes=[MultiPartParser, FormParser])
     @swagger_auto_schema(
         operation_description="Upload a media file for a SolarSolution.",
         request_body=SolutionMediaSerializer,
         responses={201: "Media uploaded", 400: "Invalid input"}
     )
+    @action(detail=True, methods=['post'], parser_classes=[MultiPartParser, FormParser])
     def upload_media(self, request, pk=None):
         """
         Upload a single media file for a SolarSolution.
         """
         solar_solution = self.get_object()  # Get the specific SolarSolution instance
+        if not solar_solution.seller == request.user.userprofile:
+            raise ValidationError("You are not allowed to upload media for this solution.")
 
         # Use the serializer to validate the data
         serializer = SolutionMediaSerializer(data=request.data)

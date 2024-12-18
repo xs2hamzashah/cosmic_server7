@@ -88,14 +88,5 @@ class PasswordResetSerializer(serializers.Serializer):
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         data = super().validate(attrs)
-        role = self.context['request'].data.get('role')
-
-        if not role:
-            raise ValidationError("Please provide the role.")
-        if role not in UserProfile.Role:
-            raise ValidationError(f"Invalid role. Available roles: {', '.join(UserProfile.Role)}")
-        if self.user.userprofile.role != role:
-            raise ValidationError("The role does not match the user's account type.")
-
         data['role'] = self.user.userprofile.role
         return data
