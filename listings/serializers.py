@@ -20,7 +20,12 @@ class SolutionMediaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = SolutionMedia
-        fields = ['image', 'is_display_image']
+        fields = ['id', 'image', 'is_display_image']
+
+
+class UpdateMediaSerializer(serializers.Serializer):
+    image_id = serializers.IntegerField(required=True)
+    is_display_image = serializers.BooleanField(required=False)
 
 
 class SolutionComponentSerializer(serializers.ModelSerializer):

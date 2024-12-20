@@ -19,7 +19,7 @@ from operations.models import Approval
 from .models import SolarSolution, Tag, SolutionMedia, SolutionComponent, Service, BuyerInteraction
 from .serializers import SolarSolutionListSerializer, SolarSolutionCreateSerializer, SolutionMediaSerializer, \
     SellerReportSerializer, SolarSolutionDetailSerializer, TagSerializer, SolarSolutionUpdateSerializer, \
-    SolutionComponentSerializer, AdminAnalyticsSerializer
+    SolutionComponentSerializer, AdminAnalyticsSerializer, UpdateMediaSerializer
 from django.db.models import Prefetch, Q, Count, F
 
 
@@ -172,6 +172,13 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
             existing_tags = Tag.objects.filter(id__in=tag_ids)
             instance.tags.set(existing_tags)
 
+        # Handle media files
+        # need to handle like either they want to delete the image, update the image is_display_field,
+        media_files = serializer.validated_data.get('media_files', [])
+        if media_files:
+            existing_media_files = SolutionMedia.objects.filter(id__in=media_files)
+            instance.mediafiles.set(existing_media_files)
+
         # Handle service
         service_data = serializer.validated_data.get('service', None)
         if service_data:
@@ -237,6 +244,52 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
             return Response({'status': 'media file uploaded'}, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @swagger_auto_schema(methods=['put', 'patch', 'delete'], request_body=UpdateMediaSerializer,
+                         responses={
+                             200: openapi.Response(description='Media file updated'),
+                             400: openapi.Response(description='Invalid request'),
+                             404: openapi.Response(description='Media file not found')
+                         })
+    @action(detail=True, methods=['put', 'patch', 'delete'], parser_classes=[MultiPartParser, FormParser])
+    def update_media(self, request, pk=None):
+        solar_solution = self.get_object()  # Get the specific SolarSolution instance
+
+        if not (solar_solution.seller == request.user.userprofile or
+                request.user.userprofile.role == UserProfile.Role.ADMIN):
+            raise ValidationError("You are not allowed to update media for this solution.")
+
+        serializer = UpdateMediaSerializer(data=request.data)
+        if serializer.is_valid():
+            image_id = serializer.validated_data['image_id']
+            is_display_image = serializer.validated_data.get('is_display_image', False)
+
+            try:
+                media = SolutionMedia.objects.get(id=image_id, solution=solar_solution)
+            except SolutionMedia.DoesNotExist:
+                raise ValidationError("Media not found")
+
+            if request.method == 'PUT' or request.method == 'PATCH':
+                if is_display_image:
+                    SolutionMedia.objects.filter(solution=solar_solution, is_display_image=True).exclude(
+                        id=image_id).update(
+                        is_display_image=False)
+                    media.is_display_image = True
+                else:
+                    display_image_exists = SolutionMedia.objects.filter(is_display_image=True).exclude(id=image_id).exists()
+                    if display_image_exists:
+                        media.is_display_image = False
+                    raise ValidationError(
+                        "You can't modify this image. You need to set another image as display image first.")
+
+                media.save()  # Save the updated media
+                return Response({'status': 'media file updated'}, status=status.HTTP_200_OK)
+
+            elif request.method == 'DELETE':
+                media.delete()
+                return Response({'status': 'media file deleted'}, status=status.HTTP_204_NO_CONTENT)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class AnalyticsViewSet(viewsets.ViewSet):
 
