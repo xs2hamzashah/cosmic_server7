@@ -41,7 +41,8 @@ class PanelViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
 
     def get_queryset(self):
-        if not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]:
+        if (self.request.user.is_authenticated and
+                not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]):
             return Panel.objects.filter(seller=self.request.user.userprofile)
         return Panel.objects.all()
 
@@ -59,7 +60,8 @@ class MechanicalWorkViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
 
     def get_queryset(self):
-        if not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]:
+        if (self.request.user.is_authenticated and
+                not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]):
             return MechanicalWork.objects.filter(seller=self.request.user.userprofile)
         return MechanicalWork.objects.all()
 
@@ -77,7 +79,8 @@ class AfterSalesServiceViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
 
     def get_queryset(self):
-        if not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]:
+        if (self.request.user.is_authenticated and
+                not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]):
             return AfterSalesService.objects.filter(seller=self.request.user.userprofile)
         return AfterSalesService.objects.all()
 
@@ -96,7 +99,8 @@ class BmsViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
 
     def get_queryset(self):
-        if not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]:
+        if (self.request.user.is_authenticated and
+                not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]):
             return Bms.objects.filter(seller=self.request.user.userprofile)
         return Bms.objects.all()
 
@@ -114,7 +118,8 @@ class CivilWorkViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
 
     def get_queryset(self):
-        if not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]:
+        if (self.request.user.is_authenticated and
+                not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]):
             return CivilWork.objects.filter(seller=self.request.user.userprofile)
         return CivilWork.objects.all()
 
@@ -132,7 +137,8 @@ class DcEarthingViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
 
     def get_queryset(self):
-        if not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]:
+        if (self.request.user.is_authenticated and
+                not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]):
             return DcEarthing.objects.filter(seller=self.request.user.userprofile)
         return DcEarthing.objects.all()
 
@@ -151,7 +157,8 @@ class ElectricWorkViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
 
     def get_queryset(self):
-        if not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]:
+        if (self.request.user.is_authenticated and
+                not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]):
             return ElectricWork.objects.filter(seller=self.request.user.userprofile)
         return ElectricWork.objects.all()
 
@@ -169,7 +176,8 @@ class HseEquipmentViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
 
     def get_queryset(self):
-        if not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]:
+        if (self.request.user.is_authenticated and
+                not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]):
             return HseEquipment.objects.filter(seller=self.request.user.userprofile)
         return HseEquipment.objects.all()
 
@@ -187,7 +195,8 @@ class InverterViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
 
     def get_queryset(self):
-        if not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]:
+        if (self.request.user.is_authenticated and
+                not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]):
             return Inverter.objects.filter(seller=self.request.user.userprofile)
         return Inverter.objects.all()
 
@@ -205,7 +214,8 @@ class BatteryViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
 
     def get_queryset(self):
-        if not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]:
+        if (self.request.user.is_authenticated and
+                not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]):
             return Battery.objects.filter(seller=self.request.user.userprofile)
         return Battery.objects.all()
 
@@ -223,7 +233,8 @@ class NetMeteringViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
 
     def get_queryset(self):
-        if not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]:
+        if (self.request.user.is_authenticated and
+                not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]):
             return NetMetering.objects.filter(seller=self.request.user.userprofile)
         return NetMetering.objects.all()
 
@@ -241,7 +252,8 @@ class OnlineMonitoringViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
 
     def get_queryset(self):
-        if not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]:
+        if (self.request.user.is_authenticated and
+                not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]):
             return OnlineMonitoring.objects.filter(seller=self.request.user.userprofile)
         return OnlineMonitoring.objects.all()
 
