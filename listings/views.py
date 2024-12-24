@@ -333,7 +333,8 @@ class AnalyticsViewSet(viewsets.ViewSet):
         # Buyer counts
         total_buyers = BuyerInteraction.objects.filter(buyer_filter).count()
         buyers_by_city = (
-            BuyerInteraction.objects.filter(buyer_filter).values(city=F('solar_solution__seller__company__city'))
+            BuyerInteraction.objects.filter(buyer_filter)
+            .values(company__city=F('solar_solution__seller__company__city'))
             .annotate(city_buyers=Count('id'))
         )
 
