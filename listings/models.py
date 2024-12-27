@@ -102,6 +102,10 @@ class SolarSolution(TimeStampedModel):
     components = models.ManyToManyField(SolutionComponent, blank=True, related_name='solar_solutions')
     seller_note = models.TextField(validators=[MaxLengthValidator(1000)], null=True, blank=True)  # Set max length to 500 characters
 
+    @property
+    def display_name(self):
+        return f"{self.size} kW {self.solution_type} Solar Solution"
+
 # will use through model for the ManyToMany later
 # components = models.ManyToManyField(SolutionComponent, through='SolarSolutionComponent', related_name='solar_solutions')
 #

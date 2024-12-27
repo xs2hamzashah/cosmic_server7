@@ -94,7 +94,6 @@ class SolarSolutionApprovalSerializer(ApprovalSerializer):
         fields = ['admin_verified']
 
 class SolarSolutionDetailSerializer(serializers.ModelSerializer):
-    display_name = serializers.SerializerMethodField()
     city = serializers.SerializerMethodField()
     tags = TagSerializer(many=True)
     components = SolutionComponentSerializer(many=True)
@@ -110,8 +109,6 @@ class SolarSolutionDetailSerializer(serializers.ModelSerializer):
                   'payment_schedule', 'components', 'service', 'images', 'approval', 'seller_note',
                   'display_name', 'city']
 
-    def get_display_name(self, obj):
-        return f"{obj.size} kW {obj.solution_type} Solar Solution"
 
     def get_city(self, obj):
         seller = obj.seller.userprofile
@@ -143,7 +140,6 @@ class SolarSolutionListSerializer(serializers.ModelSerializer):
     buyer_whatsapp_numbers = BuyerInteractionSerializer(many=True, source='interactions')
     images = SolutionMediaSerializer(many=True, source='mediafiles')  # Use the related name for images
     seller_note = serializers.CharField(validators=[MaxLengthValidator(500)], required=False, allow_blank=True)
-    display_name = serializers.SerializerMethodField()
     city = serializers.SerializerMethodField()
     is_approved = serializers.SerializerMethodField()
 
@@ -157,8 +153,6 @@ class SolarSolutionListSerializer(serializers.ModelSerializer):
         # Count the number of interactions related to this SolarSolution
         return obj.interactions.count()
 
-    def get_display_name(self, obj):
-        return f"{obj.size} kW {obj.solution_type} Solar Solution"
 
     def get_city(self, obj):
         seller = getattr(obj.seller, 'userprofile', None)

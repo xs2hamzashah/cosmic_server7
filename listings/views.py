@@ -1,3 +1,5 @@
+import re
+
 import django_filters
 from django_filters import filters
 from django_filters.rest_framework import DjangoFilterBackend
@@ -73,6 +75,7 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
         is_seller_page = filters.BooleanFilter(field_name='seller_page', method='filter_by_is_seller_page',
                                             label='Show only seller\'s listing')
         approved = filters.BooleanFilter(field_name='approved', method='filter_by_approved')
+        display_name = django_filters.CharFilter(method='filter_by_display_name')
 
         class Meta:
             model = SolarSolution
@@ -115,7 +118,34 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
                 return queryset.filter(approval__is_approved=value)
             return queryset
 
-    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+        def filter_by_display_name(self, queryset, name, value):
+            if not value:
+                return queryset
+
+            value = value.lower().replace('_', '-').replace(' ', '')
+
+            filters = {}
+
+            # Extract size
+            size_match = re.search(r'(\d+)\s*kw', value)
+            if size_match:
+                filters['size'] = size_match.group(1)
+
+            # Match solution types with variations
+            solution_patterns = {
+                'on-grid': ['ongrid', 'on-grid', 'ongridsolar'],
+                'off-grid': ['offgrid', 'off-grid', 'offgridsolar'],
+                'hybrid': ['hybrid', 'hybridsolar']
+            }
+
+            for solution_type, patterns in solution_patterns.items():
+                if any(pattern in value for pattern in patterns):
+                    filters['solution_type__icontains'] = solution_type
+                    break
+
+            return queryset.filter(**filters) if filters else queryset
+
+    filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = SolarSolutionFilter
 
 
