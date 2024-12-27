@@ -1,6 +1,7 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets
 from rest_framework.filters import SearchFilter, OrderingFilter
+from rest_framework.permissions import IsAuthenticated
 
 from accounts.models import UserProfile
 from accounts.permissions import IsAdminOrSeller
@@ -37,12 +38,11 @@ from .models import (
 class PanelViewSet(viewsets.ModelViewSet):
     queryset = Panel.objects.all()
     serializer_class = PanelSerializer
-    permission_classes = [IsAdminOrSeller]
+    permission_classes = [IsAuthenticated, IsAdminOrSeller]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
 
     def get_queryset(self):
-        if (self.request.user.is_authenticated and
-                not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]):
+        if self.request.user.is_authenticated:
             return Panel.objects.filter(seller=self.request.user.userprofile)
         return Panel.objects.all()
 
@@ -56,12 +56,11 @@ class PanelViewSet(viewsets.ModelViewSet):
 class MechanicalWorkViewSet(viewsets.ModelViewSet):
     queryset = MechanicalWork.objects.all()
     serializer_class = MechanicalWorkSerializer
-    permission_classes = [IsAdminOrSeller]
+    permission_classes = [IsAuthenticated, IsAdminOrSeller]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
 
     def get_queryset(self):
-        if (self.request.user.is_authenticated and
-                not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]):
+        if self.request.user.is_authenticated:
             return MechanicalWork.objects.filter(seller=self.request.user.userprofile)
         return MechanicalWork.objects.all()
 
@@ -75,12 +74,11 @@ class MechanicalWorkViewSet(viewsets.ModelViewSet):
 class AfterSalesServiceViewSet(viewsets.ModelViewSet):
     queryset = AfterSalesService.objects.all()
     serializer_class = AfterSalesServiceSerializer
-    permission_classes = [IsAdminOrSeller]
+    permission_classes = [IsAuthenticated, IsAdminOrSeller]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
 
     def get_queryset(self):
-        if (self.request.user.is_authenticated and
-                not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]):
+        if self.request.user.is_authenticated:
             return AfterSalesService.objects.filter(seller=self.request.user.userprofile)
         return AfterSalesService.objects.all()
 
@@ -95,12 +93,11 @@ class AfterSalesServiceViewSet(viewsets.ModelViewSet):
 class BmsViewSet(viewsets.ModelViewSet):
     queryset = Bms.objects.all()
     serializer_class = BmsSerializer
-    permission_classes = [IsAdminOrSeller]
+    permission_classes = [IsAuthenticated, IsAdminOrSeller]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
 
     def get_queryset(self):
-        if (self.request.user.is_authenticated and
-                not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]):
+        if self.request.user.is_authenticated:
             return Bms.objects.filter(seller=self.request.user.userprofile)
         return Bms.objects.all()
 
@@ -114,12 +111,11 @@ class BmsViewSet(viewsets.ModelViewSet):
 class CivilWorkViewSet(viewsets.ModelViewSet):
     queryset = CivilWork.objects.all()
     serializer_class = CivilWorkSerializer
-    permission_classes = [IsAdminOrSeller]
+    permission_classes = [IsAuthenticated, IsAdminOrSeller]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
 
     def get_queryset(self):
-        if (self.request.user.is_authenticated and
-                not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]):
+        if self.request.user.is_authenticated:
             return CivilWork.objects.filter(seller=self.request.user.userprofile)
         return CivilWork.objects.all()
 
@@ -133,12 +129,11 @@ class CivilWorkViewSet(viewsets.ModelViewSet):
 class DcEarthingViewSet(viewsets.ModelViewSet):
     queryset = DcEarthing.objects.all()
     serializer_class = DcEarthingSerializer
-    permission_classes = [IsAdminOrSeller]
+    permission_classes = [IsAuthenticated, IsAdminOrSeller]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
 
     def get_queryset(self):
-        if (self.request.user.is_authenticated and
-                not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]):
+        if self.request.user.is_authenticated:
             return DcEarthing.objects.filter(seller=self.request.user.userprofile)
         return DcEarthing.objects.all()
 
@@ -153,12 +148,11 @@ class DcEarthingViewSet(viewsets.ModelViewSet):
 class ElectricWorkViewSet(viewsets.ModelViewSet):
     queryset = ElectricWork.objects.all()
     serializer_class = ElectricWorkSerializer
-    permission_classes = [IsAdminOrSeller]
+    permission_classes = [IsAuthenticated, IsAdminOrSeller]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
 
     def get_queryset(self):
-        if (self.request.user.is_authenticated and
-                not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]):
+        if self.request.user.is_authenticated:
             return ElectricWork.objects.filter(seller=self.request.user.userprofile)
         return ElectricWork.objects.all()
 
@@ -172,12 +166,11 @@ class ElectricWorkViewSet(viewsets.ModelViewSet):
 class HseEquipmentViewSet(viewsets.ModelViewSet):
     queryset = HseEquipment.objects.all()
     serializer_class = HseEquipmentSerializer
-    permission_classes = [IsAdminOrSeller]
+    permission_classes = [IsAuthenticated, IsAdminOrSeller]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
 
     def get_queryset(self):
-        if (self.request.user.is_authenticated and
-                not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]):
+        if self.request.user.is_authenticated:
             return HseEquipment.objects.filter(seller=self.request.user.userprofile)
         return HseEquipment.objects.all()
 
@@ -191,12 +184,11 @@ class HseEquipmentViewSet(viewsets.ModelViewSet):
 class InverterViewSet(viewsets.ModelViewSet):
     queryset = Inverter.objects.all()
     serializer_class = InverterSerializer
-    permission_classes = [IsAdminOrSeller]
+    permission_classes = [IsAuthenticated, IsAdminOrSeller]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
 
     def get_queryset(self):
-        if (self.request.user.is_authenticated and
-                not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]):
+        if self.request.user.is_authenticated:
             return Inverter.objects.filter(seller=self.request.user.userprofile)
         return Inverter.objects.all()
 
@@ -210,12 +202,11 @@ class InverterViewSet(viewsets.ModelViewSet):
 class BatteryViewSet(viewsets.ModelViewSet):
     queryset = Battery.objects.all()
     serializer_class = BatterySerializer
-    permission_classes = [IsAdminOrSeller]
+    permission_classes = [IsAuthenticated, IsAdminOrSeller]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
 
     def get_queryset(self):
-        if (self.request.user.is_authenticated and
-                not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]):
+        if self.request.user.is_authenticated:
             return Battery.objects.filter(seller=self.request.user.userprofile)
         return Battery.objects.all()
 
@@ -229,12 +220,11 @@ class BatteryViewSet(viewsets.ModelViewSet):
 class NetMeteringViewSet(viewsets.ModelViewSet):
     queryset = NetMetering.objects.all()
     serializer_class = NetMeteringSerializer
-    permission_classes = [IsAdminOrSeller]
+    permission_classes = [IsAuthenticated, IsAdminOrSeller]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
 
     def get_queryset(self):
-        if (self.request.user.is_authenticated and
-                not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]):
+        if self.request.user.is_authenticated:
             return NetMetering.objects.filter(seller=self.request.user.userprofile)
         return NetMetering.objects.all()
 
@@ -248,12 +238,11 @@ class NetMeteringViewSet(viewsets.ModelViewSet):
 class OnlineMonitoringViewSet(viewsets.ModelViewSet):
     queryset = OnlineMonitoring.objects.all()
     serializer_class = OnlineMonitoringSerializer
-    permission_classes = [IsAdminOrSeller]
+    permission_classes = [IsAuthenticated, IsAdminOrSeller]
     filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
 
     def get_queryset(self):
-        if (self.request.user.is_authenticated and
-                not self.request.user.userprofile.role in [UserProfile.role.ADMIN, UserProfile.role.SELLER]):
+        if self.request.user.is_authenticated:
             return OnlineMonitoring.objects.filter(seller=self.request.user.userprofile)
         return OnlineMonitoring.objects.all()
 
