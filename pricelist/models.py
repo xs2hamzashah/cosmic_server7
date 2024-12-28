@@ -28,7 +28,7 @@ class StructureType(models.TextChoices):
 
 # panel/
 class Panel(TimeStampedModel):
-    seller = models.OneToOneField(UserProfile, related_name='panel', on_delete=models.CASCADE)
+    seller = models.ForeignKey(UserProfile, related_name='panels', on_delete=models.CASCADE)
     brand_name = models.CharField(max_length=200)
     specification = models.CharField(max_length=200)
     capacity = models.IntegerField()
@@ -38,8 +38,8 @@ class Panel(TimeStampedModel):
 
 # /mechanical-work
 class MechanicalWork(TimeStampedModel):
-    seller = models.OneToOneField(UserProfile, related_name='mechanical_work', on_delete=models.CASCADE)
-    structure_type = models.CharField(max_length=20,choices=StructureType)
+    seller = models.ForeignKey(UserProfile, related_name='mechanical_works', on_delete=models.CASCADE)
+    structure_type = models.CharField(max_length=20, choices=StructureType)
     specification = models.CharField(max_length=200)
     unit = models.CharField(max_length=10, choices=PriceListUnitType)
     price = models.IntegerField()
@@ -47,7 +47,7 @@ class MechanicalWork(TimeStampedModel):
 
 # after-sales-service
 class AfterSalesService(TimeStampedModel):
-    seller = models.OneToOneField(UserProfile, related_name='after_sales_service', on_delete=models.CASCADE)
+    seller = models.ForeignKey(UserProfile, related_name='after_sales_services', on_delete=models.CASCADE)
     specification = models.CharField(max_length=200)
     capacity = models.IntegerField()
     unit = models.CharField(max_length=10, choices=PriceListUnitType)
@@ -56,7 +56,7 @@ class AfterSalesService(TimeStampedModel):
 
 # /bms
 class Bms(TimeStampedModel):
-    seller = models.OneToOneField(UserProfile, related_name='bms', on_delete=models.CASCADE)
+    seller = models.ForeignKey(UserProfile, related_name='bms', on_delete=models.CASCADE)
     specification = models.CharField(max_length=200)
     capacity = models.IntegerField()
     unit = models.CharField(max_length=10, choices=PriceListUnitType)
@@ -65,7 +65,7 @@ class Bms(TimeStampedModel):
 
 # /civil-work
 class CivilWork(TimeStampedModel):
-    seller = models.OneToOneField(UserProfile, related_name='civil_work', on_delete=models.CASCADE)
+    seller = models.ForeignKey(UserProfile, related_name='civil_works', on_delete=models.CASCADE)
     specification = models.CharField(max_length=200)
     capacity = models.IntegerField()
     unit = models.CharField(max_length=10, choices=PriceListUnitType)
@@ -74,7 +74,7 @@ class CivilWork(TimeStampedModel):
 
 # /dc-earthing
 class DcEarthing(TimeStampedModel):
-    seller = models.OneToOneField(UserProfile, related_name='dc_earthing', on_delete=models.CASCADE)
+    seller = models.ForeignKey(UserProfile, related_name='dc_earthings', on_delete=models.CASCADE)
     specification = models.CharField(max_length=200)
     capacity = models.IntegerField()
     unit = models.CharField(max_length=10, choices=PriceListUnitType)
@@ -83,7 +83,7 @@ class DcEarthing(TimeStampedModel):
 
 # electric-work
 class ElectricWork(TimeStampedModel):
-    seller = models.OneToOneField(UserProfile, related_name='electrical_work', on_delete=models.CASCADE)
+    seller = models.ForeignKey(UserProfile, related_name='electrical_works', on_delete=models.CASCADE)
     specification = models.CharField(max_length=200)
     system_type = models.CharField(max_length=20, choices=SystemType)
     unit = models.CharField(max_length=10, choices=PriceListUnitType)
@@ -92,7 +92,7 @@ class ElectricWork(TimeStampedModel):
 
 # /hse-equipment
 class HseEquipment(TimeStampedModel):
-    seller = models.OneToOneField(UserProfile, related_name='hse_equipment', on_delete=models.CASCADE)
+    seller = models.ForeignKey(UserProfile, related_name='hse_equipments', on_delete=models.CASCADE)
     specification = models.CharField(max_length=200)
     capacity = models.IntegerField()
     unit = models.CharField(max_length=10, choices=PriceListUnitType)
@@ -102,7 +102,7 @@ class HseEquipment(TimeStampedModel):
 
 # /inverter
 class Inverter(TimeStampedModel):
-    seller = models.OneToOneField(UserProfile, related_name='inverter', on_delete=models.CASCADE)
+    seller = models.ForeignKey(UserProfile, related_name='inverters', on_delete=models.CASCADE)
     brand_name = models.CharField(max_length=200)
     system_type = models.CharField(max_length=20, choices=SystemType)
     specification = models.CharField(max_length=200)
@@ -113,7 +113,7 @@ class Inverter(TimeStampedModel):
 
 # /battery
 class Battery(TimeStampedModel):
-    seller = models.OneToOneField(UserProfile, related_name='battery', on_delete=models.CASCADE)
+    seller = models.ForeignKey(UserProfile, related_name='batteries', on_delete=models.CASCADE)
     brand_name = models.CharField(max_length=200)
     system_type = models.CharField(max_length=20, choices=BatteryType)
     specification = models.CharField(max_length=200)
@@ -124,7 +124,7 @@ class Battery(TimeStampedModel):
 
 # /net-marketing
 class NetMetering(TimeStampedModel):
-    seller = models.OneToOneField(UserProfile, related_name='net_metering', on_delete=models.CASCADE)
+    seller = models.ForeignKey(UserProfile, related_name='net_meterings', on_delete=models.CASCADE)
     specification = models.CharField(max_length=200)
     capacity = models.IntegerField()
     unit = models.CharField(max_length=10, choices=PriceListUnitType)
@@ -133,7 +133,7 @@ class NetMetering(TimeStampedModel):
 
 # /online-marketing
 class OnlineMonitoring(TimeStampedModel):
-    seller = models.OneToOneField(UserProfile, related_name='online_monitoring', on_delete=models.CASCADE)
+    seller = models.ForeignKey(UserProfile, related_name='online_monitorings', on_delete=models.CASCADE)
     specification = models.CharField(max_length=200)
     capacity = models.IntegerField()
     unit = models.CharField(max_length=10, choices=PriceListUnitType)

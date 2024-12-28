@@ -52,23 +52,25 @@ class PanelViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         seller = self.request.user.userprofile
-        # Check if a panel already exists for this seller
-        if Panel.objects.filter(seller=seller).exists():
-            raise ValidationError({"detail": "A panel for this seller already exists."})
         serializer.save(seller=seller)
 
     def perform_update(self, serializer):
         serializer.save(seller=self.request.user.userprofile)
 
     @action(detail=False, methods=['get'])
-    def my_panel(self, request):
+    def my_panels(self, request):
         seller = self.request.user.userprofile
-        try:
-            panel = Panel.objects.get(seller=seller)
-        except Panel.DoesNotExist:
-            raise NotFound({"detail": "No panel found for this seller."})
+        panel_qs = Panel.objects.filter(seller=seller).order_by('id')
 
-        serializer = self.get_serializer(panel)
+        # Apply pagination to the queryset
+        page = self.paginate_queryset(panel_qs)
+
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        # If no pagination is applied, return all objects
+        serializer = self.get_serializer(panel_qs, many=True)
         return Response(serializer.data)
 
 
@@ -85,22 +87,25 @@ class MechanicalWorkViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         seller = self.request.user.userprofile
-        if MechanicalWork.objects.filter(seller=seller).exists():
-            raise ValidationError({"detail": "A mechanical work for this seller already exists."})
         serializer.save(seller=seller)
 
     def perform_update(self, serializer):
         serializer.save(seller=self.request.user.userprofile)
 
     @action(detail=False, methods=['get'])
-    def my_mechanical_work(self, request):
+    def my_mechanical_works(self, request):
         seller = self.request.user.userprofile
-        try:
-            mechanical_work = MechanicalWork.objects.get(seller=seller)
-        except MechanicalWork.DoesNotExist:
-            raise NotFound({"detail": "No mechanical work found for this seller."})
+        mechanical_work_qs = MechanicalWork.objects.filter(seller=seller).order_by('id')
 
-        serializer = self.get_serializer(mechanical_work)
+        # Apply pagination to the queryset
+        page = self.paginate_queryset(mechanical_work_qs)
+
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        # If no pagination is applied, return all objects
+        serializer = self.get_serializer(mechanical_work_qs, many=True)
         return Response(serializer.data)
 
 
@@ -117,22 +122,25 @@ class AfterSalesServiceViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         seller = self.request.user.userprofile
-        if AfterSalesService.objects.filter(seller=seller).exists():
-            raise ValidationError({"detail": "An after sales service for this seller already exists."})
         serializer.save(seller=seller)
 
     def perform_update(self, serializer):
         serializer.save(seller=self.request.user.userprofile)
 
     @action(detail=False, methods=['get'])
-    def my_after_sales_service(self, request):
+    def my_after_sales_services(self, request):
         seller = self.request.user.userprofile
-        try:
-            after_sales_service = AfterSalesService.objects.get(seller=seller)
-        except AfterSalesService.DoesNotExist:
-            raise NotFound({"detail": "No after-sales service found for this seller."})
+        after_sales_service_qs = AfterSalesService.objects.filter(seller=seller).order_by('id')
 
-        serializer = self.get_serializer(after_sales_service)
+        # Apply pagination to the queryset
+        page = self.paginate_queryset(after_sales_service_qs)
+
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        # If no pagination is applied, return all objects
+        serializer = self.get_serializer(after_sales_service_qs, many=True)
         return Response(serializer.data)
 
 
@@ -149,8 +157,6 @@ class BmsViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         seller = self.request.user.userprofile
-        if Bms.objects.filter(seller=seller).exists():
-            raise ValidationError({"detail": "A BMS for this seller already exists."})
         serializer.save(seller=seller)
 
     def perform_update(self, serializer):
@@ -159,12 +165,17 @@ class BmsViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def my_bms(self, request):
         seller = self.request.user.userprofile
-        try:
-            bms = Bms.objects.get(seller=seller)
-        except Bms.DoesNotExist:
-            raise NotFound({"detail": "No BMS found for this seller."})
+        bms_qs = Bms.objects.filter(seller=seller).order_by('id')
 
-        serializer = self.get_serializer(bms)
+        # Apply pagination to the queryset
+        page = self.paginate_queryset(bms_qs)
+
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        # If no pagination is applied, return all objects
+        serializer = self.get_serializer(bms_qs, many=True)
         return Response(serializer.data)
 
 
@@ -181,24 +192,26 @@ class CivilWorkViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         seller = self.request.user.userprofile
-        if CivilWork.objects.filter(seller=seller).exists():
-            raise ValidationError({"detail": "A civil work for this seller already exists."})
         serializer.save(seller=seller)
 
     def perform_update(self, serializer):
         serializer.save(seller=self.request.user.userprofile)
 
     @action(detail=False, methods=['get'])
-    def my_civil_work(self, request):
+    def my_civil_works(self, request):
         seller = self.request.user.userprofile
-        try:
-            civil_work = CivilWork.objects.get(seller=seller)
-        except CivilWork.DoesNotExist:
-            raise NotFound({"detail": "No civil work found for this seller."})
+        civil_work_qs = CivilWork.objects.filter(seller=seller).order_by('id')
 
-        serializer = self.get_serializer(civil_work)
+        # Apply pagination to the queryset
+        page = self.paginate_queryset(civil_work_qs)
+
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        # If no pagination is applied, return all objects
+        serializer = self.get_serializer(civil_work_qs, many=True)
         return Response(serializer.data)
-
 
 class DcEarthingViewSet(viewsets.ModelViewSet):
     queryset = DcEarthing.objects.all()
@@ -220,17 +233,22 @@ class DcEarthingViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         serializer.save(seller=self.request.user.userprofile)\
 
+
     @action(detail=False, methods=['get'])
-    def my_dc_earthing(self, request):
+    def my_dc_earthings(self, request):
         seller = self.request.user.userprofile
-        try:
-            dc_earthing = DcEarthing.objects.get(seller=seller)
-        except DcEarthing.DoesNotExist:
-            raise NotFound({"detail": "No DC Earthing found for this seller."})
+        dc_earthing_qs = DcEarthing.objects.filter(seller=seller).order_by('id')
 
-        serializer = self.get_serializer(dc_earthing)
+        # Apply pagination to the queryset
+        page = self.paginate_queryset(dc_earthing_qs)
+
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        # If no pagination is applied, return all objects
+        serializer = self.get_serializer(dc_earthing_qs, many=True)
         return Response(serializer.data)
-
 
 class ElectricWorkViewSet(viewsets.ModelViewSet):
     queryset = ElectricWork.objects.all()
@@ -245,22 +263,25 @@ class ElectricWorkViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         seller = self.request.user.userprofile
-        if ElectricWork.objects.filter(seller=seller).exists():
-            raise ValidationError({"detail": "An electric work for this seller already exists."})
         serializer.save(seller=seller)
 
     def perform_update(self, serializer):
         serializer.save(seller=self.request.user.userprofile)
 
     @action(detail=False, methods=['get'])
-    def my_electrical_work(self, request):
+    def my_electrical_works(self, request):
         seller = self.request.user.userprofile
-        try:
-            electrical_work = ElectricWork.objects.get(seller=seller)
-        except ElectricWork.DoesNotExist:
-            raise NotFound({"detail": "No Electrical work found for this seller."})
+        electrical_work_qs = ElectricWork.objects.filter(seller=seller).order_by('id')
 
-        serializer = self.get_serializer(electrical_work)
+        # Apply pagination to the queryset
+        page = self.paginate_queryset(electrical_work_qs)
+
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        # If no pagination is applied, return all objects
+        serializer = self.get_serializer(electrical_work_qs, many=True)
         return Response(serializer.data)
 
 class HseEquipmentViewSet(viewsets.ModelViewSet):
@@ -276,22 +297,25 @@ class HseEquipmentViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         seller = self.request.user.userprofile
-        if HseEquipment.objects.filter(seller=seller).exists():
-            raise ValidationError({"detail": "An HSE equipment for this seller already exists."})
         serializer.save(seller=seller)
 
     def perform_update(self, serializer):
         serializer.save(seller=self.request.user.userprofile)
 
     @action(detail=False, methods=['get'])
-    def my_hse_equipment(self, request):
+    def my_hse_equipments(self, request):
         seller = self.request.user.userprofile
-        try:
-            hse_equipment = HseEquipment.objects.get(seller=seller)
-        except HseEquipment.DoesNotExist:
-            raise NotFound({"detail": "No HSE Equipment found for this seller."})
+        hse_equipment_qs = HseEquipment.objects.filter(seller=seller).order_by('id')
 
-        serializer = self.get_serializer(hse_equipment)
+        # Apply pagination to the queryset
+        page = self.paginate_queryset(hse_equipment_qs)
+
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        # If no pagination is applied, return all objects
+        serializer = self.get_serializer(hse_equipment_qs, many=True)
         return Response(serializer.data)
 
 
@@ -308,22 +332,23 @@ class InverterViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         seller = self.request.user.userprofile
-        if Inverter.objects.filter(seller=seller).exists():
-            raise ValidationError({"detail": "An inverter for this seller already exists."})
         serializer.save(seller=seller)
 
     def perform_update(self, serializer):
         serializer.save(seller=self.request.user.userprofile)
 
     @action(detail=False, methods=['get'])
-    def my_inverter(self, request):
+    def my_inverters(self, request):
         seller = self.request.user.userprofile
-        try:
-            inverter = Inverter.objects.get(seller=seller)
-        except Inverter.DoesNotExist:
-            raise NotFound({"detail": "No inverter found for this seller."})
+        inverter_qs = Inverter.objects.filter(seller=seller).order_by('id')  # Use filter to allow multiple objects
+        page = self.paginate_queryset(inverter_qs)
 
-        serializer = self.get_serializer(inverter)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        # If no pagination is applied, return all objects
+        serializer = self.get_serializer(inverter_qs, many=True)
         return Response(serializer.data)
 
 
@@ -340,22 +365,23 @@ class BatteryViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         seller = self.request.user.userprofile
-        if Battery.objects.filter(seller=seller).exists():
-            raise ValidationError({"detail": "A battery for this seller already exists."})
         serializer.save(seller=seller)
 
     def perform_update(self, serializer):
         serializer.save(seller=self.request.user.userprofile)
 
     @action(detail=False, methods=['get'])
-    def my_battery(self, request):
+    def my_batteries(self, request):
         seller = self.request.user.userprofile
-        try:
-            battery = Battery.objects.get(seller=seller)
-        except Battery.DoesNotExist:
-            raise NotFound({"detail": "No battery found for this seller."})
+        battery_qs = Battery.objects.filter(seller=seller).order_by('id')  # Use filter to allow multiple objects
+        page = self.paginate_queryset(battery_qs)
 
-        serializer = self.get_serializer(battery)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        # If no pagination is applied, return all objects
+        serializer = self.get_serializer(battery_qs, many=True)
         return Response(serializer.data)
 
 
@@ -372,22 +398,23 @@ class NetMeteringViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         seller = self.request.user.userprofile
-        if NetMetering.objects.filter(seller=seller).exists():
-            raise ValidationError({"detail": "A net metering for this seller already exists."})
         serializer.save(seller=seller)
 
     def perform_update(self, serializer):
         serializer.save(seller=self.request.user.userprofile)
 
     @action(detail=False, methods=['get'])
-    def my_net_metering(self, request):
+    def my_net_meterings(self, request):
         seller = self.request.user.userprofile
-        try:
-            net_metering = NetMetering.objects.get(seller=seller)
-        except NetMetering.DoesNotExist:
-            raise NotFound({"detail": "No net metering found for this seller."})
+        net_metering_qs = NetMetering.objects.filter(seller=seller).order_by('id')  # Use filter to allow multiple objects
+        page = self.paginate_queryset(net_metering_qs)
 
-        serializer = self.get_serializer(net_metering)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        # If no pagination is applied, return all objects
+        serializer = self.get_serializer(net_metering_qs, many=True)
         return Response(serializer.data)
 
 
@@ -404,20 +431,20 @@ class OnlineMonitoringViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         seller = self.request.user.userprofile
-        if OnlineMonitoring.objects.filter(seller=seller).exists():
-            raise ValidationError({"detail": "An online monitoring for this seller already exists."})
         serializer.save(seller=seller)
 
     def perform_update(self, serializer):
         serializer.save(seller=self.request.user.userprofile)
 
     @action(detail=False, methods=['get'])
-    def my_online_monitoring(self, request):
+    def my_online_monitorings(self, request):
         seller = self.request.user.userprofile
-        try:
-            online_monitoring = OnlineMonitoring.objects.get(seller=seller)
-        except OnlineMonitoring.DoesNotExist:
-            raise NotFound({"detail": "No battery found for this seller."})
+        online_monitoring_qs = OnlineMonitoring.objects.filter(seller=seller).order_by('id')
+        page = self.paginate_queryset(online_monitoring_qs)
 
-        serializer = self.get_serializer(online_monitoring)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(online_monitoring_qs, many=True)
         return Response(serializer.data)
