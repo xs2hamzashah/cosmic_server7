@@ -57,6 +57,7 @@ class AfterSalesService(TimeStampedModel):
 # /bms
 class Bms(TimeStampedModel):
     seller = models.ForeignKey(UserProfile, related_name='bms', on_delete=models.CASCADE)
+    brand_name = models.CharField(max_length=200, null=True, blank=True)
     specification = models.CharField(max_length=200)
     capacity = models.IntegerField()
     unit = models.CharField(max_length=10, choices=PriceListUnitType)
