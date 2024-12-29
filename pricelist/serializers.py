@@ -25,7 +25,7 @@ class AfterSalesServiceSerializer(serializers.ModelSerializer):
 class BmsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Bms
-        fields = ["id", "specification", "capacity", "unit", "price"]
+        fields = ["id", "brand_name", "specification", "capacity", "unit", "price"]
 
 
 class CivilWorkSerializer(serializers.ModelSerializer):
