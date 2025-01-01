@@ -102,26 +102,15 @@ class SolarSolutionDetailSerializer(serializers.ModelSerializer):
     approval = SolarSolutionApprovalSerializer()
     seller_note = serializers.CharField(validators=[MaxLengthValidator(500)], required=False, allow_blank=True)
 
-
     class Meta:
         model = SolarSolution
         fields = ['id', 'size', 'price', 'solution_type', 'tags', 'completion_time_days',
                   'payment_schedule', 'components', 'service', 'images', 'approval', 'seller_note',
                   'display_name', 'city']
 
-
     def get_city(self, obj):
-        seller = obj.seller.userprofile
-        company = seller.comapny
+        company = getattr(obj.seller, 'company', None)
         return company.city
-
-
-    def get_city(self, obj):
-        seller = getattr(obj.seller, 'userprofile', None)
-        if seller and seller.role == UserProfile.Role.SELLER:
-            company = getattr(seller, 'company', None)
-            return company.city if company and company.city else None
-        return None
 
 
 class BuyerInteractionSerializer(serializers.ModelSerializer):
@@ -173,6 +162,28 @@ class SolarSolutionListSerializer(serializers.ModelSerializer):
             return company.name
         return None
 
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        request = self.context.get('request')
+
+        # Check if request and user exist
+        if request and hasattr(request, 'user'):
+            user = request.user
+
+            # Handle anonymous users
+            if user.is_anonymous or not hasattr(user, 'userprofile'):
+                representation.pop('is_approved', None)
+                representation.pop('buyer_interaction_count', None)
+                representation.pop('buyer_whatsapp_numbers', None)
+
+            else:
+                # If the user is not an admin or a seller, remove sensitive fields
+                if user.userprofile.role not in [UserProfile.Role.ADMIN, UserProfile.Role.SELLER]:
+                    representation.pop('is_approved', None)
+                    representation.pop('buyer_interaction_count', None)
+                    representation.pop('buyer_whatsapp_numbers', None)
+
+        return representation
 
 
 class SellerReportSerializer(serializers.Serializer):

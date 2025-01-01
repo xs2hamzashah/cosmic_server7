@@ -167,6 +167,11 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
             Prefetch('mediafiles', queryset=SolutionMedia.objects.filter(is_display_image=True)),
         )
 
+        # Check if the user is anonymous and filter unapproved packages
+        request = self.request
+        if request.user.is_anonymous:
+            solar_solution_qs = solar_solution_qs.filter(approval__admin_verified=True)
+
         if self.action == 'list':
             return solar_solution_qs
         else:
