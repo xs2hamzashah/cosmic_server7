@@ -142,12 +142,13 @@ class SolarSolutionListSerializer(serializers.ModelSerializer):
     seller_note = serializers.CharField(validators=[MaxLengthValidator(500)], required=False, allow_blank=True)
     city = serializers.SerializerMethodField()
     is_approved = serializers.SerializerMethodField()
+    company = serializers.SerializerMethodField()
 
     class Meta:
         model = SolarSolution
         fields = ['id', 'size', 'price', 'solution_type', 'completion_time_days', 'payment_schedule',
                   'buyer_interaction_count', 'buyer_whatsapp_numbers', 'images', 'seller_note',
-                  'display_name', 'city', 'is_approved']
+                  'display_name', 'city', 'is_approved', 'company']
 
     def get_buyer_interaction_count(self, obj):
         # Count the number of interactions related to this SolarSolution
@@ -164,6 +165,13 @@ class SolarSolutionListSerializer(serializers.ModelSerializer):
     def get_is_approved(self, obj):
         approval = getattr(obj, 'approval', None)
         return approval.admin_verified if approval else False
+
+    def get_company(self, obj):
+        seller = obj.seller
+        if seller and seller.role == UserProfile.Role.SELLER:
+            company = getattr(seller, 'company', None)
+            return company.name
+        return None
 
 
 

@@ -104,12 +104,7 @@ class SolarSolution(TimeStampedModel):
 
     @property
     def display_name(self):
-        if self.seller and hasattr(self.seller, 'company') and self.seller.company:
-            company_name = self.seller.company.name
-        else:
-            company_name = ""
-        return f"{company_name} {self.solution_type} Solar Solution"
-
+        return f"{self.size} kW {self.solution_type} Solar Solution"
 
 # will use through model for the ManyToMany later
 # components = models.ManyToManyField(SolutionComponent, through='SolarSolutionComponent', related_name='solar_solutions')
