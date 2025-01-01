@@ -125,6 +125,7 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
             value = value.lower().replace('_', '-').replace(' ', '')
 
             filters = {}
+            q_objects = Q()
 
             # Extract size
             size_match = re.search(r'(\d+)\s*kw', value)
@@ -143,7 +144,14 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
                     filters['solution_type__icontains'] = solution_type
                     break
 
-            return queryset.filter(**filters) if filters else queryset
+            # Using Q objects to combine filters with OR condition for seller's company name
+            q_objects |= Q(seller__company__name__icontains=value)
+            if filters:
+                base_query = queryset.filter(**filters)
+            else:
+                base_query = queryset
+
+            return base_query.filter(q_objects).distinct()
 
     filter_backends = [DjangoFilterBackend, OrderingFilter]
     filterset_class = SolarSolutionFilter
