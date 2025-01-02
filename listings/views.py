@@ -410,7 +410,7 @@ class AnalyticsViewSet(viewsets.ViewSet):
         serializer = AdminAnalyticsSerializer(response_data)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['get'], permission_classes=[IsAdminOrSeller])
+    @action(detail=False, methods=['get'], permission_classes=[IsSeller])
     @swagger_auto_schema(
         operation_description="Seller Analytics",
         responses={200: SellerReportSerializer()}
