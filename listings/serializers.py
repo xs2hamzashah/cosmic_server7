@@ -2,6 +2,7 @@ from django.core.validators import MaxLengthValidator
 from rest_framework import serializers
 
 from accounts.models import UserProfile
+from accounts.serializers import CompanySerializer
 from operations.models import Approval
 from operations.serializers import ApprovalSerializer
 from .models import SolarSolution, Tag, SolutionMedia, SolutionComponent, Service, BuyerInteraction
@@ -101,12 +102,13 @@ class SolarSolutionDetailSerializer(serializers.ModelSerializer):
     images = SolutionMediaSerializer(many=True, source='mediafiles')  # Use the related name for images
     approval = SolarSolutionApprovalSerializer()
     seller_note = serializers.CharField(validators=[MaxLengthValidator(500)], required=False, allow_blank=True)
+    company = CompanySerializer(source='seller.company')
 
     class Meta:
         model = SolarSolution
         fields = ['id', 'size', 'price', 'solution_type', 'tags', 'completion_time_days',
                   'payment_schedule', 'components', 'service', 'images', 'approval', 'seller_note',
-                  'display_name', 'city']
+                  'display_name', 'city', 'company']
 
     def get_city(self, obj):
         company = getattr(obj.seller, 'company', None)
