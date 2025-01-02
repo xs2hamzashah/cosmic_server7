@@ -418,15 +418,36 @@ class AnalyticsViewSet(viewsets.ViewSet):
     def seller_analytics(self, request, pk=None):
         seller = request.user
         seller_profile = seller.userprofile
-        solar_solutions = (SolarSolution.objects.select_related('seller', 'seller__user',
-                                                               'seller__company')
-                          .prefetch_related('interactions', 'mediafiles', 'components').filter(seller=seller_profile))
 
+        # Fetch solar solutions for the seller
+        solar_solutions = (
+            SolarSolution.objects.select_related('seller', 'seller__user', 'seller__company')
+            .prefetch_related('interactions', 'mediafiles', 'components')
+            .filter(seller=seller_profile)
+        )
+
+        # Calculate total buyers
+        total_buyers = BuyerInteraction.objects.filter(
+            solar_solution__in=solar_solutions
+        ).count()
+
+        # Calculate buyers per package
+        buyers_per_package = (
+            BuyerInteraction.objects.filter(solar_solution__in=solar_solutions)
+            .values('solar_solution__id')
+            .annotate(package_buyers=Count('id'))
+            .values('solar_solution__id', 'package_buyers')
+        )
+
+        # Prepare the seller data
         seller_data = {
             'seller_id': seller.id,
             'seller_name': seller.full_name,
-            'products': solar_solutions
+            'total_buyers': total_buyers,
+            'buyers_per_package': buyers_per_package,
+            'products': solar_solutions,
         }
+
         # Use the SellerReportSerializer to serialize the seller data
         serializer = SellerReportSerializer(seller_data)
         return Response(serializer.data, status=status.HTTP_200_OK)

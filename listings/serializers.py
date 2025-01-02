@@ -188,9 +188,16 @@ class SolarSolutionListSerializer(serializers.ModelSerializer):
         return representation
 
 
+class BuyerPerPackageSerializer(serializers.Serializer):
+    solar_solution_id = serializers.IntegerField(source='solar_solution__id')
+    package_buyers = serializers.IntegerField()
+
+
 class SellerReportSerializer(serializers.Serializer):
     seller_id = serializers.IntegerField()
     seller_name = serializers.CharField()
+    total_buyers = serializers.IntegerField()
+    buyers_per_package = BuyerPerPackageSerializer(many=True)
     products = SolarSolutionListSerializer(many=True)
 
 
