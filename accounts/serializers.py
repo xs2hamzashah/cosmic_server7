@@ -61,7 +61,9 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
         # Create a company only if the user is a seller
         profile = UserProfile.objects.create(user=user, **validated_data)
-        if profile.role == 'seller' and company_data:
+        if profile.role == 'seller':
+            if not company_data:
+                raise ValidationError(f"A company is required for sellers.")
             company_name = company_data.get('name')
             if company_name and Company.objects.filter(name=company_name).exists():
                 raise ValidationError(f"A company with the name '{company_name}' already exists.")
