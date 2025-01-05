@@ -109,7 +109,7 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
 
         def filter_by_is_seller_page(self, queryset, name, value):
             if (value and self.request.user.is_authenticated and
-                    self.request.user.userprofile.role == UserProfile.role.SELLER):
+                    self.request.user.userprofile.role == UserProfile.Role.SELLER):
                 return queryset.filter(seller=self.request.user.userprofile)
             return queryset
 
