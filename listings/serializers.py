@@ -112,7 +112,8 @@ class SolarSolutionDetailSerializer(serializers.ModelSerializer):
 
     def get_city(self, obj):
         company = getattr(obj.seller, 'company', None)
-        return company.city
+        if company:
+            return company.city
 
 
 class BuyerInteractionSerializer(serializers.ModelSerializer):
