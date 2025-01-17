@@ -37,7 +37,15 @@ from .models import (
 )
 
 
-class PanelViewSet(viewsets.ModelViewSet):
+class BaseViewSet(viewsets.ModelViewSet):
+    @action(detail=False, methods=['get'])
+    def all_data(self, request):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+
+class PanelViewSet(BaseViewSet):
     queryset = Panel.objects.all()
     serializer_class = PanelSerializer
     permission_classes = [IsAuthenticated, IsAdminOrSeller]
@@ -47,8 +55,6 @@ class PanelViewSet(viewsets.ModelViewSet):
         if self.request.user.is_authenticated:
             return Panel.objects.filter(seller=self.request.user.userprofile)
         return Panel.objects.all()
-
-
 
     def perform_create(self, serializer):
         seller = self.request.user.userprofile
@@ -74,7 +80,7 @@ class PanelViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class MechanicalWorkViewSet(viewsets.ModelViewSet):
+class MechanicalWorkViewSet(BaseViewSet):
     queryset = MechanicalWork.objects.all()
     serializer_class = MechanicalWorkSerializer
     permission_classes = [IsAuthenticated, IsAdminOrSeller]
@@ -109,7 +115,7 @@ class MechanicalWorkViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class AfterSalesServiceViewSet(viewsets.ModelViewSet):
+class AfterSalesServiceViewSet(BaseViewSet):
     queryset = AfterSalesService.objects.all()
     serializer_class = AfterSalesServiceSerializer
     permission_classes = [IsAuthenticated, IsAdminOrSeller]
@@ -144,7 +150,7 @@ class AfterSalesServiceViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class BmsViewSet(viewsets.ModelViewSet):
+class BmsViewSet(BaseViewSet):
     queryset = Bms.objects.all()
     serializer_class = BmsSerializer
     permission_classes = [IsAuthenticated, IsAdminOrSeller]
@@ -179,7 +185,7 @@ class BmsViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class CivilWorkViewSet(viewsets.ModelViewSet):
+class CivilWorkViewSet(BaseViewSet):
     queryset = CivilWork.objects.all()
     serializer_class = CivilWorkSerializer
     permission_classes = [IsAuthenticated, IsAdminOrSeller]
@@ -213,7 +219,8 @@ class CivilWorkViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(civil_work_qs, many=True)
         return Response(serializer.data)
 
-class DcEarthingViewSet(viewsets.ModelViewSet):
+
+class DcEarthingViewSet(BaseViewSet):
     queryset = DcEarthing.objects.all()
     serializer_class = DcEarthingSerializer
     permission_classes = [IsAuthenticated, IsAdminOrSeller]
@@ -231,8 +238,7 @@ class DcEarthingViewSet(viewsets.ModelViewSet):
         serializer.save(seller=seller)
 
     def perform_update(self, serializer):
-        serializer.save(seller=self.request.user.userprofile)\
-
+        serializer.save(seller=self.request.user.userprofile)
 
     @action(detail=False, methods=['get'])
     def my_dc_earthings(self, request):
@@ -250,7 +256,8 @@ class DcEarthingViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(dc_earthing_qs, many=True)
         return Response(serializer.data)
 
-class ElectricWorkViewSet(viewsets.ModelViewSet):
+
+class ElectricWorkViewSet(BaseViewSet):
     queryset = ElectricWork.objects.all()
     serializer_class = ElectricWorkSerializer
     permission_classes = [IsAuthenticated, IsAdminOrSeller]
@@ -284,7 +291,8 @@ class ElectricWorkViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(electrical_work_qs, many=True)
         return Response(serializer.data)
 
-class HseEquipmentViewSet(viewsets.ModelViewSet):
+
+class HseEquipmentViewSet(BaseViewSet):
     queryset = HseEquipment.objects.all()
     serializer_class = HseEquipmentSerializer
     permission_classes = [IsAuthenticated, IsAdminOrSeller]
@@ -319,7 +327,7 @@ class HseEquipmentViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class InverterViewSet(viewsets.ModelViewSet):
+class InverterViewSet(BaseViewSet):
     queryset = Inverter.objects.all()
     serializer_class = InverterSerializer
     permission_classes = [IsAuthenticated, IsAdminOrSeller]
@@ -340,7 +348,9 @@ class InverterViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def my_inverters(self, request):
         seller = self.request.user.userprofile
-        inverter_qs = Inverter.objects.filter(seller=seller).order_by('id')  # Use filter to allow multiple objects
+        inverter_qs = Inverter.objects.filter(seller=seller).order_by('id')
+
+        # Apply pagination to the queryset
         page = self.paginate_queryset(inverter_qs)
 
         if page is not None:
@@ -352,7 +362,7 @@ class InverterViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class BatteryViewSet(viewsets.ModelViewSet):
+class BatteryViewSet(BaseViewSet):
     queryset = Battery.objects.all()
     serializer_class = BatterySerializer
     permission_classes = [IsAuthenticated, IsAdminOrSeller]
@@ -373,7 +383,9 @@ class BatteryViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def my_batteries(self, request):
         seller = self.request.user.userprofile
-        battery_qs = Battery.objects.filter(seller=seller).order_by('id')  # Use filter to allow multiple objects
+        battery_qs = Battery.objects.filter(seller=seller).order_by('id')
+
+        # Apply pagination to the queryset
         page = self.paginate_queryset(battery_qs)
 
         if page is not None:
@@ -385,7 +397,7 @@ class BatteryViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class NetMeteringViewSet(viewsets.ModelViewSet):
+class NetMeteringViewSet(BaseViewSet):
     queryset = NetMetering.objects.all()
     serializer_class = NetMeteringSerializer
     permission_classes = [IsAuthenticated, IsAdminOrSeller]
@@ -406,7 +418,9 @@ class NetMeteringViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def my_net_meterings(self, request):
         seller = self.request.user.userprofile
-        net_metering_qs = NetMetering.objects.filter(seller=seller).order_by('id')  # Use filter to allow multiple objects
+        net_metering_qs = NetMetering.objects.filter(seller=seller).order_by('id')
+
+        # Apply pagination to the queryset
         page = self.paginate_queryset(net_metering_qs)
 
         if page is not None:
@@ -418,7 +432,7 @@ class NetMeteringViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
-class OnlineMonitoringViewSet(viewsets.ModelViewSet):
+class OnlineMonitoringViewSet(BaseViewSet):
     queryset = OnlineMonitoring.objects.all()
     serializer_class = OnlineMonitoringSerializer
     permission_classes = [IsAuthenticated, IsAdminOrSeller]
@@ -440,11 +454,14 @@ class OnlineMonitoringViewSet(viewsets.ModelViewSet):
     def my_online_monitorings(self, request):
         seller = self.request.user.userprofile
         online_monitoring_qs = OnlineMonitoring.objects.filter(seller=seller).order_by('id')
+
+        # Apply pagination to the queryset
         page = self.paginate_queryset(online_monitoring_qs)
 
         if page is not None:
             serializer = self.get_serializer(page, many=True)
             return self.get_paginated_response(serializer.data)
 
+        # If no pagination is applied, return all objects
         serializer = self.get_serializer(online_monitoring_qs, many=True)
         return Response(serializer.data)
