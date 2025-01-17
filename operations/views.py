@@ -1,15 +1,16 @@
 import random
 
 from django.core.cache import cache
+from django.shortcuts import get_object_or_404
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets, status
 from rest_framework.permissions import AllowAny
-
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from twilio.rest import Client
 
+from accounts.models import UserProfile
 from accounts.permissions import IsAdmin
 from core.utils import send_approval_notification
 from cosmic_server7 import settings
@@ -32,25 +33,27 @@ class ApprovalViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @action(detail=True, methods=['POST'])
+    @swagger_auto_schema(request_body=None)
     def unapprove(self, request, pk=None):
         approval = self.get_object()
-        serializer = self.get_serializer(approval, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save(admin_verified=False, email_notification_sent=False)
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        approval.admin_verified = False
+        approval.email_notification_sent = False
+        approval.save()
+        serializer = self.get_serializer(approval)
+        return Response(serializer.data)
 
     @action(detail=True, methods=['POST'])
+    @swagger_auto_schema(request_body=None)
     def approve(self, request, pk=None):
         approval = self.get_object()
-        serializer = self.get_serializer(approval, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save(admin_verified=True, email_notification_sent=True)
-            # Call function to send email
-            # In future we'll make this async...
-            send_approval_notification(approval.solution.seller)
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        approval.admin_verified = True
+        approval.email_notification_sent = True
+        approval.save()
+        # Call function to send email
+        # In future we'll make this async...
+        send_approval_notification(approval.solution.seller)
+        serializer = self.get_serializer(approval)
+        return Response(serializer.data)
 
 
 class OTPViewSet(viewsets.ViewSet):
