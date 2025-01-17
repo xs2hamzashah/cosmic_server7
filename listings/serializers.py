@@ -92,7 +92,7 @@ class SolarSolutionUpdateSerializer(serializers.ModelSerializer):
 class SolarSolutionApprovalSerializer(ApprovalSerializer):
     class Meta:
         model = Approval
-        fields = ['admin_verified']
+        fields = ['id', 'admin_verified']
 
 class SolarSolutionDetailSerializer(serializers.ModelSerializer):
     city = serializers.SerializerMethodField()
@@ -133,19 +133,18 @@ class SolarSolutionListSerializer(serializers.ModelSerializer):
     images = SolutionMediaSerializer(many=True, source='mediafiles')  # Use the related name for images
     seller_note = serializers.CharField(validators=[MaxLengthValidator(500)], required=False, allow_blank=True)
     city = serializers.SerializerMethodField()
-    is_approved = serializers.SerializerMethodField()
+    approval_status = serializers.SerializerMethodField()
     company = serializers.SerializerMethodField()
 
     class Meta:
         model = SolarSolution
         fields = ['id', 'size', 'price', 'solution_type', 'completion_time_days', 'payment_schedule',
                   'buyer_interaction_count', 'buyer_whatsapp_numbers', 'images', 'seller_note',
-                  'display_name', 'city', 'is_approved', 'company']
+                  'display_name', 'city', 'approval_status', 'company']
 
     def get_buyer_interaction_count(self, obj):
         # Count the number of interactions related to this SolarSolution
         return obj.interactions.count()
-
 
     def get_city(self, obj):
         seller = getattr(obj.seller, 'userprofile', None)
@@ -154,9 +153,14 @@ class SolarSolutionListSerializer(serializers.ModelSerializer):
             return getattr(company, 'city', None) if company else None
         return None
 
-    def get_is_approved(self, obj):
+    def get_approval_status(self, obj):
         approval = getattr(obj, 'approval', None)
-        return approval.admin_verified if approval else False
+        if approval:
+            return {
+                'id': approval.id,
+                'approved': approval.admin_verified
+            }
+        return None
 
     def get_company(self, obj):
         seller = obj.seller
@@ -175,14 +179,14 @@ class SolarSolutionListSerializer(serializers.ModelSerializer):
 
             # Handle anonymous users
             if user.is_anonymous or not hasattr(user, 'userprofile'):
-                representation.pop('is_approved', None)
+                representation.pop('approval_status', None)
                 representation.pop('buyer_interaction_count', None)
                 representation.pop('buyer_whatsapp_numbers', None)
 
             else:
                 # If the user is not an admin or a seller, remove sensitive fields
                 if user.userprofile.role not in [UserProfile.Role.ADMIN, UserProfile.Role.SELLER]:
-                    representation.pop('is_approved', None)
+                    representation.pop('approval_status', None)
                     representation.pop('buyer_interaction_count', None)
                     representation.pop('buyer_whatsapp_numbers', None)
 
