@@ -32,6 +32,15 @@ class ApprovalViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     @action(detail=True, methods=['POST'])
+    def unapprove(self, request, pk=None):
+        approval = self.get_object()
+        serializer = self.get_serializer(approval, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save(admin_verified=False, email_notification_sent=False)
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=True, methods=['POST'])
     def approve(self, request, pk=None):
         approval = self.get_object()
         serializer = self.get_serializer(approval, data=request.data, partial=True)
