@@ -1,7 +1,7 @@
 from django.core.validators import MaxLengthValidator
 from rest_framework import serializers
 
-from accounts.models import UserProfile
+from accounts.models import UserProfile, Company
 from accounts.serializers import CompanySerializer
 from operations.models import Approval
 from operations.serializers import ApprovalSerializer
@@ -132,26 +132,18 @@ class SolarSolutionListSerializer(serializers.ModelSerializer):
     buyer_whatsapp_numbers = BuyerInteractionSerializer(many=True, source='interactions')
     images = SolutionMediaSerializer(many=True, source='mediafiles')  # Use the related name for images
     seller_note = serializers.CharField(validators=[MaxLengthValidator(500)], required=False, allow_blank=True)
-    city = serializers.SerializerMethodField()
+    company = CompanySerializer(source='seller.company', read_only=True)
     approval_status = serializers.SerializerMethodField()
-    company = serializers.SerializerMethodField()
 
     class Meta:
         model = SolarSolution
         fields = ['id', 'size', 'price', 'solution_type', 'completion_time_days', 'payment_schedule',
                   'buyer_interaction_count', 'buyer_whatsapp_numbers', 'images', 'seller_note',
-                  'display_name', 'city', 'approval_status', 'company']
+                  'display_name', 'company', 'approval_status']
 
     def get_buyer_interaction_count(self, obj):
         # Count the number of interactions related to this SolarSolution
         return obj.interactions.count()
-
-    def get_city(self, obj):
-        seller = getattr(obj.seller, 'userprofile', None)
-        if seller and seller.role == UserProfile.Role.SELLER:
-            company = getattr(seller, 'company', None)
-            return getattr(company, 'city', None) if company else None
-        return None
 
     def get_approval_status(self, obj):
         approval = getattr(obj, 'approval', None)
@@ -160,13 +152,6 @@ class SolarSolutionListSerializer(serializers.ModelSerializer):
                 'id': approval.id,
                 'approved': approval.admin_verified
             }
-        return None
-
-    def get_company(self, obj):
-        seller = obj.seller
-        if seller and seller.role == UserProfile.Role.SELLER:
-            company = getattr(seller, 'company', None)
-            return company.name
         return None
 
     def to_representation(self, instance):

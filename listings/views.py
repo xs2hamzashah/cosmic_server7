@@ -26,7 +26,6 @@ from django.db.models import Prefetch, Q, Count, F
 
 
 class SolarSolutionViewSet(viewsets.ModelViewSet):
-    queryset = SolarSolution.objects.all()
     serializer_class = SolarSolutionListSerializer  # default fallback
     # ordering fields
     # search fields
