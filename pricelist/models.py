@@ -32,16 +32,16 @@ class Panel(TimeStampedModel):
     brand_name = models.CharField(max_length=200)
     specification = models.CharField(max_length=200)
     capacity = models.IntegerField()
-    unit = models.CharField(max_length=10, choices=PriceListUnitType)
-    price = models.IntegerField()
+    unit = models.CharField(max_length=10, choices=PriceListUnitType.choices)
+    price = models.DecimalField(max_digits=12, decimal_places=2)
 
 
 # /mechanical-work
 class MechanicalWork(TimeStampedModel):
     seller = models.ForeignKey(UserProfile, related_name='mechanical_works', on_delete=models.CASCADE)
-    structure_type = models.CharField(max_length=20, choices=StructureType)
+    structure_type = models.CharField(max_length=20, choices=StructureType.choices)
     specification = models.CharField(max_length=200)
-    unit = models.CharField(max_length=10, choices=PriceListUnitType)
+    unit = models.CharField(max_length=10, choices=PriceListUnitType.choices)
     price = models.IntegerField()
 
 
@@ -50,8 +50,8 @@ class AfterSalesService(TimeStampedModel):
     seller = models.ForeignKey(UserProfile, related_name='after_sales_services', on_delete=models.CASCADE)
     specification = models.CharField(max_length=200)
     capacity = models.IntegerField()
-    unit = models.CharField(max_length=10, choices=PriceListUnitType)
-    price = models.IntegerField()
+    unit = models.CharField(max_length=10, choices=PriceListUnitType.choices)
+    price = models.DecimalField(max_digits=12, decimal_places=2)
 
 
 # /bms
@@ -60,7 +60,7 @@ class Bms(TimeStampedModel):
     brand_name = models.CharField(max_length=200, null=True, blank=True)
     specification = models.CharField(max_length=200)
     capacity = models.IntegerField()
-    unit = models.CharField(max_length=10, choices=PriceListUnitType)
+    unit = models.CharField(max_length=10, choices=PriceListUnitType.choices)
     price = models.IntegerField()
 
 
@@ -69,7 +69,7 @@ class CivilWork(TimeStampedModel):
     seller = models.ForeignKey(UserProfile, related_name='civil_works', on_delete=models.CASCADE)
     specification = models.CharField(max_length=200)
     capacity = models.IntegerField()
-    unit = models.CharField(max_length=10, choices=PriceListUnitType)
+    unit = models.CharField(max_length=10, choices=PriceListUnitType.choices)
     price = models.IntegerField()
 
 
@@ -78,7 +78,7 @@ class DcEarthing(TimeStampedModel):
     seller = models.ForeignKey(UserProfile, related_name='dc_earthings', on_delete=models.CASCADE)
     specification = models.CharField(max_length=200)
     capacity = models.IntegerField()
-    unit = models.CharField(max_length=10, choices=PriceListUnitType)
+    unit = models.CharField(max_length=10, choices=PriceListUnitType.choices)
     price = models.IntegerField()
 
 
@@ -86,8 +86,8 @@ class DcEarthing(TimeStampedModel):
 class ElectricWork(TimeStampedModel):
     seller = models.ForeignKey(UserProfile, related_name='electrical_works', on_delete=models.CASCADE)
     specification = models.CharField(max_length=200)
-    system_type = models.CharField(max_length=20, choices=SystemType)
-    unit = models.CharField(max_length=10, choices=PriceListUnitType)
+    system_type = models.CharField(max_length=20, choices=SystemType.choices)
+    unit = models.CharField(max_length=10, choices=PriceListUnitType.choices)
     price = models.IntegerField()
 
 
@@ -96,19 +96,18 @@ class HseEquipment(TimeStampedModel):
     seller = models.ForeignKey(UserProfile, related_name='hse_equipments', on_delete=models.CASCADE)
     specification = models.CharField(max_length=200)
     capacity = models.IntegerField()
-    unit = models.CharField(max_length=10, choices=PriceListUnitType)
+    unit = models.CharField(max_length=10, choices=PriceListUnitType.choices)
     price = models.IntegerField()
-
 
 
 # /inverter
 class Inverter(TimeStampedModel):
     seller = models.ForeignKey(UserProfile, related_name='inverters', on_delete=models.CASCADE)
     brand_name = models.CharField(max_length=200)
-    system_type = models.CharField(max_length=20, choices=SystemType)
+    system_type = models.CharField(max_length=20, choices=SystemType.choices)
     specification = models.CharField(max_length=200)
     capacity = models.IntegerField()
-    unit = models.CharField(max_length=10, choices=PriceListUnitType)
+    unit = models.CharField(max_length=10, choices=PriceListUnitType.choices)
     price = models.IntegerField()
 
 
@@ -116,10 +115,10 @@ class Inverter(TimeStampedModel):
 class Battery(TimeStampedModel):
     seller = models.ForeignKey(UserProfile, related_name='batteries', on_delete=models.CASCADE)
     brand_name = models.CharField(max_length=200)
-    system_type = models.CharField(max_length=20, choices=BatteryType)
+    system_type = models.CharField(max_length=20, choices=BatteryType.choices)
     specification = models.CharField(max_length=200)
     capacity = models.IntegerField()
-    unit = models.CharField(max_length=10, choices=PriceListUnitType)
+    unit = models.CharField(max_length=10, choices=PriceListUnitType.choices)
     price = models.IntegerField()
 
 
@@ -128,7 +127,7 @@ class NetMetering(TimeStampedModel):
     seller = models.ForeignKey(UserProfile, related_name='net_meterings', on_delete=models.CASCADE)
     specification = models.CharField(max_length=200)
     capacity = models.IntegerField()
-    unit = models.CharField(max_length=10, choices=PriceListUnitType)
+    unit = models.CharField(max_length=10, choices=PriceListUnitType.choices)
     price = models.IntegerField()
 
 
@@ -137,7 +136,5 @@ class OnlineMonitoring(TimeStampedModel):
     seller = models.ForeignKey(UserProfile, related_name='online_monitorings', on_delete=models.CASCADE)
     specification = models.CharField(max_length=200)
     capacity = models.IntegerField()
-    unit = models.CharField(max_length=10, choices=PriceListUnitType)
+    unit = models.CharField(max_length=10, choices=PriceListUnitType.choices)
     price = models.IntegerField()
-
-
