@@ -52,10 +52,10 @@ class UserProfileSerializer(serializers.ModelSerializer):
 
     def get_buyers_count(self, obj):
         if obj.role == UserProfile.Role.SELLER:
-            # Count unique buyers who have interacted with any of the seller's solutions
+            # Count unique whatsapp numbers who have interacted with any of the seller's solutions
             return obj.solar_solutions.filter(
                 interactions__isnull=False
-            ).values('interactions__buyer').distinct().count()
+            ).values('interactions__whatsapp_number').distinct().count()
         return 0
 
     def get_packages_count(self, obj):
