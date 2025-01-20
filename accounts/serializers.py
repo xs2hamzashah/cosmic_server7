@@ -43,10 +43,26 @@ class CompanySerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer()
     company = CompanySerializer(allow_null=True)  # Allow null for non-sellers
+    buyers_count = serializers.SerializerMethodField()
+    packages_count = serializers.SerializerMethodField()
 
     class Meta:
         model = UserProfile
-        fields = ['id', 'user', 'role', 'company']
+        fields = ['id', 'user', 'role', 'company', 'buyers_count', 'packages_count']
+
+    def get_buyers_count(self, obj):
+        if obj.role == UserProfile.Role.SELLER:
+            # Count unique buyers who have interacted with any of the seller's solutions
+            return obj.solar_solutions.filter(
+                interactions__isnull=False
+            ).values('interactions__buyer').distinct().count()
+        return 0
+
+    def get_packages_count(self, obj):
+        if obj.role == UserProfile.Role.SELLER:
+            # Count all solar solutions for this seller
+            return obj.solar_solutions.count()
+        return 0
 
     def create(self, validated_data):
         user_data = validated_data.pop('user')

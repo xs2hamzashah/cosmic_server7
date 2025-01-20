@@ -23,7 +23,13 @@ from .serializers import UserProfileSerializer, ForgotPasswordSerializer, Passwo
 
 
 class UserProfileViewSet(viewsets.ModelViewSet):
-    queryset = UserProfile.objects.select_related('user')
+    queryset = UserProfile.objects.select_related(
+        'user', 
+        'company'
+    ).prefetch_related(
+        'solar_solutions',
+        'solar_solutions__interactions'
+    )
     serializer_class = UserProfileSerializer
 
     # Default serializer for user profile
