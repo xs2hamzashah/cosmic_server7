@@ -233,8 +233,6 @@ class DcEarthingViewSet(BaseViewSet):
 
     def perform_create(self, serializer):
         seller = self.request.user.userprofile
-        if DcEarthing.objects.filter(seller=seller).exists():
-            raise ValidationError({"detail": "A DC earthing for this seller already exists."})
         serializer.save(seller=seller)
 
     def perform_update(self, serializer):
