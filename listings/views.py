@@ -114,8 +114,8 @@ class SolarSolutionViewSet(viewsets.ModelViewSet):
 
         def filter_by_approved(self, queryset, name, value):
             if value:
-                return queryset.filter(approval__is_approved=value)
-            return queryset
+                return queryset.filter(approval__isnull=False, approval__admin_verified=True)
+            return queryset.filter(Q(approval__isnull=True) | Q(approval__admin_verified=False))
 
         def filter_by_display_name(self, queryset, name, value):
             if not value:
